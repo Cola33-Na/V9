@@ -615,8 +615,6 @@
         // ================= 初始化 =================
         document.addEventListener('DOMContentLoaded', function() {
             loadManualSelect();
-            
-            // 批量輸入即時預覽
             document.getElementById('batchData').addEventListener('input', previewBatch);
         });
         
@@ -648,7 +646,7 @@
                 });
                 
                 if (data.success) {
-                    showStatus(`✅ 更新成功！第 ${data.row} 行：${bookKey} -> ${location || '(空)'}`, 'success');
+                    showStatus(`✅ 更新成功！第 ${data.row} 行：${bookKey} → ${location || '(空)'}`, 'success');
                     document.getElementById('singleBookKey').value = '';
                     document.getElementById('singleLocation').value = '';
                 } else {
@@ -781,7 +779,6 @@
         
         async function removeLastManual() {
             try {
-                // 取得列表並移除最後一個
                 const data = await apiCall('getManualSelect');
                 if (data.success && data.data.length > 0) {
                     const lastItem = data.data[data.data.length - 1];
@@ -810,7 +807,7 @@
             searchBook();
         }
         
-        // ================= 查詢功能 =================
+        // ================= 查詢功能（已修正） =================
         async function searchBook() {
             const input = document.getElementById('searchInput').value.trim();
             const btn = document.getElementById('searchBtn');
@@ -835,6 +832,11 @@
                 if (data.success && data.found) {
                     displayResults(data);
                     showStatus(`✅ 查詢成功（${data.elapsedSeconds?.toFixed(2) || '?'}s）`, 'success');
+                    
+                    // ===== 修正1：查詢成功後自動添加到 Manual Select 並清除輸入欄 =====
+                    await autoAddToManualSelect(input);
+                    document.getElementById('searchInput').value = '';
+                    
                 } else if (data.success && !data.found) {
                     resultsDiv.innerHTML = `
                         <div class="empty-state">
@@ -843,6 +845,8 @@
                         </div>
                     `;
                     showStatus('查無資料', 'error');
+                    // 查無資料時也清空輸入欄，但不加入 Manual Select
+                    document.getElementById('searchInput').value = '';
                 } else {
                     throw new Error(data.error || '未知錯誤');
                 }
@@ -852,6 +856,18 @@
             } finally {
                 btn.disabled = false;
                 btn.textContent = '🔍 查詢';
+            }
+        }
+        
+        // 新增：自動添加到 Manual Select（不重複）
+        async function autoAddToManualSelect(value) {
+            try {
+                const data = await apiCall('addToManualSelect', { value: value });
+                if (data.success) {
+                    loadManualSelect(); // 刷新右側列表
+                }
+            } catch (e) {
+                console.log('自動添加失敗:', e);
             }
         }
         
