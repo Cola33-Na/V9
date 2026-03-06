@@ -775,13 +775,29 @@
                 padding-bottom: 100px; /* 為浮動按鈕留空間 */
             }
             
-            /* 手機端隱藏桌面sidebar，顯示手機元素 */
+            /* 手機端隱藏桌面sidebar */
             .desktop-only {
                 display: none !important;
             }
             
-            .mobile-only {
+            /* 手機端顯示浮動按鈕 */
+            .mobile-only.fab-container {
                 display: block !important;
+            }
+            
+            /* 手機端隱藏面板和遮罩層（預設狀態）- 重要修復 */
+            .mobile-panel-overlay,
+            .mobile-panel {
+                display: none !important;
+            }
+            
+            /* 當有active class時顯示（僅遮罩層和面板） */
+            .mobile-panel-overlay.active {
+                display: block !important;
+            }
+            
+            .mobile-panel.active {
+                display: flex !important;
             }
             
             /* 手機端浮動按鈕 */
@@ -828,7 +844,6 @@
             
             /* 浮動面板 */
             .mobile-panel-overlay {
-                display: none;
                 position: fixed;
                 top: 0;
                 left: 0;
@@ -836,10 +851,6 @@
                 bottom: 0;
                 background: rgba(0,0,0,0.5);
                 z-index: 1001;
-            }
-            
-            .mobile-panel-overlay.active {
-                display: block;
             }
             
             .mobile-panel {
@@ -850,15 +861,9 @@
                 background: white;
                 border-radius: 20px 20px 0 0;
                 max-height: 80vh;
-                transform: translateY(100%);
-                transition: transform 0.3s ease;
-                z-index: 1002;
-                display: flex;
-                flex-direction: column;
-            }
-            
-            .mobile-panel.active {
                 transform: translateY(0);
+                z-index: 1002;
+                flex-direction: column;
             }
             
             .mobile-panel-header {
@@ -1143,7 +1148,7 @@
                                 </div>
                             </div>
                             
-                            <!-- 手機端浮動按鈕（僅手機端顯示） -->
+                            <!-- 手機端浮動按鈕 -->
                             <div class="fab-container mobile-only">
                                 <button class="fab-button" onclick="toggleMobilePanel()">
                                     📋
@@ -1151,9 +1156,9 @@
                                 </button>
                             </div>
                             
-                            <!-- 手機端彈出面板（僅手機端顯示） -->
-                            <div class="mobile-panel-overlay mobile-only" id="mobilePanelOverlay" onclick="toggleMobilePanel()"></div>
-                            <div class="mobile-panel mobile-only" id="mobilePanel">
+                            <!-- 手機端彈出面板 -->
+                            <div class="mobile-panel-overlay" id="mobilePanelOverlay" onclick="toggleMobilePanel()"></div>
+                            <div class="mobile-panel" id="mobilePanel">
                                 <div class="mobile-panel-header">
                                     <div class="mobile-panel-title">📋 Manual Select</div>
                                     <button class="mobile-panel-close" onclick="toggleMobilePanel()">×</button>
@@ -1180,7 +1185,7 @@
                             </div>
                         </div>
                         
-                        <!-- 右側：Manual Select（僅桌面端顯示） -->
+                        <!-- 右側：Manual Select（桌面端） -->
                         <div class="search-sidebar desktop-only">
                             <h3>
                                 📋 Manual Select
@@ -1208,11 +1213,10 @@
                     </div>
                 </div>
                 
-                <!-- 2) 顯示設定功能區（預設隱藏） -->
+                <!-- 2) 顯示設定功能區 -->
                 <div id="panel-display" class="function-block">
                     <div class="panel-content">
                         <div class="block-title">⚙️ 顯示設定</div>
-                        
                         <div class="control-box">
                             <div class="control-title" style="margin-bottom: 15px; font-size: 16px;">
                                 <span style="background: #667eea; color: white; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 8px;">1</span>
@@ -1228,11 +1232,10 @@
                     </div>
                 </div>
                 
-                <!-- 3) 單一位置更新功能區（預設隱藏） -->
+                <!-- 3) 單一位置更新功能區 -->
                 <div id="panel-single" class="function-block">
                     <div class="panel-content">
                         <div class="block-title">📝 單一位置更新</div>
-                        
                         <div class="control-box">
                             <div class="control-title" style="margin-bottom: 15px; font-size: 16px;">
                                 <span style="background: #667eea; color: white; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 8px;">2</span>
@@ -1244,8 +1247,6 @@
                                 <button class="btn-success" onclick="updateSingleLocation()" style="width: 100%;">更新</button>
                             </div>
                             <div class="helper-text">請輸入14位數字條碼。按下更新後條碼欄立即清除，位置欄保留供下次使用</div>
-                            
-                            <div id="singleStatus" class="status-bar" style="margin-top: 15px; display: none;"></div>
                         </div>
                         
                         <!-- 日誌區域 -->
@@ -1261,31 +1262,25 @@
                     </div>
                 </div>
                 
-                <!-- 4) 批量位置更新功能區（預設隱藏） -->
+                <!-- 4) 批量位置更新功能區 -->
                 <div id="panel-batch" class="function-block">
                     <div class="panel-content">
                         <div class="block-title">📋 批量位置更新</div>
-                        
                         <div class="control-box">
                             <div class="control-title" style="margin-bottom: 15px; font-size: 16px;">
                                 <span style="background: #667eea; color: white; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 8px;">3</span>
                                 批量更新書目位置
                             </div>
-                            
                             <div class="batch-default-location">
                                 <label style="font-size: 14px; color: #856404; font-weight: 600; display: block; margin-bottom: 8px;">預設位置（當下方未指定位置時使用）：</label>
                                 <input type="text" id="batchDefaultLocation" placeholder="輸入預設位置..." style="border-color: #ffeaa7;">
                             </div>
-                            
                             <textarea id="batchData" placeholder="格式：條碼,位置 或 僅條碼（使用上方預設位置）&#10;每行只取前14個字元&#10;例如：&#10;9789861234567,3F-A區&#10;9789861234568&#10;9789861234569,2F-C區"></textarea>
-                            
                             <div class="batch-actions">
                                 <button class="btn-warning" onclick="clearBatchData()">🗑️ 清空全部</button>
                                 <button class="btn-primary" onclick="submitBatchUpdate()" id="batchUpdateBtn">確認批量更新</button>
                             </div>
-                            
                             <div class="helper-text">直接執行更新，無須確認。每行只取前14位字元處理。失敗項目會記錄到 Error 工作表</div>
-                            
                             <div id="batchStatus" class="status-bar" style="margin-top: 15px; display: none;"></div>
                         </div>
                     </div>
@@ -1299,16 +1294,14 @@
         const API_URL = 'https://script.google.com/macros/s/AKfycbzl-HifsUB1oZqmtQPLjG0fYCrxZQYTiEWTC5UzftyAhKTj_Ns3BpqavhGFjaHMrRAi/exec';
         let currentDisplayLimit = 100;
         let manualSelectData = [];
-        let updateLogs = []; // 儲存單一位置更新日誌
-        const MAX_LOGS = 50; // 修改為50個
+        let updateLogs = [];
+        const MAX_LOGS = 50;
         let currentPanel = 'search';
         
-        // 檢查是否為手機端
         function isMobile() {
             return window.innerWidth <= 968;
         }
         
-        // 顯示/隱藏手機端浮動面板
         function toggleMobilePanel() {
             const overlay = document.getElementById('mobilePanelOverlay');
             const panel = document.getElementById('mobilePanel');
@@ -1325,7 +1318,6 @@
             }
         }
         
-        // 從手機端添加項目
         function addManualItemFromMobile() {
             const input = document.getElementById('newManualItemMobile');
             const value = input.value.trim();
@@ -1345,7 +1337,6 @@
             }
         }
         
-        // 渲染手機端Manual Select列表
         function renderManualListMobile() {
             const listDiv = document.getElementById('manualListMobile');
             const fabBadge = document.getElementById('fabBadge');
@@ -1358,7 +1349,6 @@
             }
             
             let html = '';
-            // 逆序顯示，最新的在上面
             for (let i = manualSelectData.length - 1; i >= 0; i--) {
                 const item = manualSelectData[i];
                 html += `
@@ -1371,24 +1361,19 @@
             listDiv.innerHTML = html;
         }
         
-        // 從手機端使用項目
         function useManualItemFromMobile(value) {
             document.getElementById('searchInput').value = value;
-            toggleMobilePanel(); // 關閉面板
+            toggleMobilePanel();
             searchBook();
         }
         
         document.addEventListener('DOMContentLoaded', function() {
             loadManualSelect();
-            // 初始化時根據螢幕大小顯示對應UI
             updateMobileUI();
-            
-            // 監聽視窗大小變化
             window.addEventListener('resize', updateMobileUI);
         });
         
         function updateMobileUI() {
-            // CSS已經處理了顯示/隱藏，這裡只需確保手機端列表已渲染
             if (isMobile()) {
                 renderManualListMobile();
             }
@@ -1407,7 +1392,6 @@
             document.querySelector(`.tool-btn[data-target="${panelName}"]`).classList.add('active');
             
             currentPanel = panelName;
-            
             document.querySelector('.content-area').scrollTop = 0;
             
             if (panelName === 'search') {
@@ -1425,7 +1409,6 @@
             }
         }
         
-        // 添加日誌
         function addLog(message, type = 'success') {
             const now = new Date();
             const timeStr = now.toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -1436,7 +1419,6 @@
                 type: type
             });
             
-            // 只保留最近50筆
             if (updateLogs.length > MAX_LOGS) {
                 updateLogs = updateLogs.slice(0, MAX_LOGS);
             }
@@ -1444,7 +1426,6 @@
             renderLogs();
         }
         
-        // 渲染日誌
         function renderLogs() {
             const logList = document.getElementById('logList');
             
@@ -1466,7 +1447,6 @@
             logList.innerHTML = html;
         }
         
-        // 清空日誌（不用確認）
         function clearLogs() {
             updateLogs = [];
             renderLogs();
@@ -1476,7 +1456,6 @@
             const bookKey = document.getElementById('singleBookKey').value.trim();
             const location = document.getElementById('singleLocation').value.trim();
             
-            // 驗證條碼
             const barcodeRegex = /^\d{14}$/;
             if (!barcodeRegex.test(bookKey)) {
                 addLog(`❌ ${bookKey || '(空)'}：必須為14位數條碼`, 'error');
@@ -1484,14 +1463,12 @@
                 return;
             }
             
-            // 驗證位置不能為空
             if (!location) {
                 addLog(`❌ ${bookKey}：位置不能為空值`, 'error');
                 document.getElementById('singleLocation').focus();
                 return;
             }
             
-            // 立即清除條碼欄，保留位置欄（保留值功能）
             document.getElementById('singleBookKey').value = '';
             document.getElementById('singleBookKey').focus();
             
@@ -1521,7 +1498,6 @@
                 return;
             }
             
-            // 驗證預設位置不能為空
             if (!defaultLoc) {
                 showStatus('batch', '❌ 位置不能為空值', 'error');
                 document.getElementById('batchDefaultLocation').focus();
@@ -1590,7 +1566,6 @@
         }
         
         function showStatus(panel, message, type) {
-            // 單一位置更新不使用showStatus，由日誌顯示
             if (panel === 'single') return;
             
             let statusId = 'statusBar';
@@ -1799,10 +1774,8 @@
                 if (data.success && data.found) {
                     displayResults(data);
                     showStatus('search', `✅ 查詢成功（${data.elapsedSeconds?.toFixed(2) || '?'}s）`, 'success');
-                    
                     addToManualSelectBackground(input);
                     document.getElementById('searchInput').value = '';
-                    
                 } else if (data.success && !data.found) {
                     resultsDiv.innerHTML = `
                         <div class="empty-state">
@@ -1942,21 +1915,6 @@
                     document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }, 100);
             }
-        }
-        
-        function clearResults() {
-            document.getElementById('searchInput').value = '';
-            document.getElementById('results').innerHTML = `
-                <div class="empty-state">
-                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.3; margin-bottom: 16px;">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <path d="m21 21-4.35-4.35"></path>
-                    </svg>
-                    <p>請輸入14位數條碼開始查詢</p>
-                </div>
-            `;
-            document.getElementById('statusBar').style.display = 'none';
-            document.getElementById('searchInput').focus();
         }
         
         function escapeHtml(text) {
