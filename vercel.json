@@ -1,0 +1,23 @@
+{
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "https://script.google.com/macros/s/AKfycbwDczodOap8DVNVEVsXQCNxQI2J_UKZvOsutttSDOD7tTzcWa37Dv_I-SiuwuMi0YAqhg/exec"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, OPTIONS"
+        }
+      ]
+    }
+  ]
+}
