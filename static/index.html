@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HKPL 圖書查詢系統 - 優化版</title>
+    <title>HKPL 圖書查詢系統 - 修正版</title>
     <style>
         * {
             margin: 0;
@@ -336,14 +336,14 @@
             display: block;
         }
         
-        /* 1) 放大3倍的可選圖書館及位置資訊 */
+        /* 1) 可選圖書館及位置保持放大3倍 */
         .library-summary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 30px 40px;
             border-radius: 12px;
             margin-bottom: 25px;
-            font-size: 42px; /* 原14px的3倍 */
+            font-size: 42px; /* 放大3倍 */
             font-weight: 700;
             display: flex;
             justify-content: space-between;
@@ -363,35 +363,35 @@
             border: 3px solid white;
         }
         
-        /* 2) 書目資料直排顯示 */
+        /* 1) 書目資料恢復原大小（但保持直排結構） */
         .book-info {
             background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
-            border-left: 6px solid #ff9800;
-            padding: 30px;
+            border-left: 4px solid #ff9800;
+            padding: 20px;
             margin-bottom: 25px;
-            border-radius: 0 12px 12px 0;
+            border-radius: 0 10px 10px 0;
         }
         
         .book-info h2 {
             color: #e65100;
-            margin-bottom: 25px;
-            font-size: 28px;
-            font-weight: 700;
-            border-bottom: 3px solid #ff9800;
-            padding-bottom: 15px;
+            margin-bottom: 15px;
+            font-size: 20px; /* 恢復原大小 */
+            font-weight: 600;
+            border-bottom: 2px solid #ff9800;
+            padding-bottom: 10px;
         }
         
-        /* 直排列表樣式 */
+        /* 直排列表樣式 - 原大小 */
         .info-list {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 8px; /* 恢復較小間距 */
         }
         
         .info-row {
             display: flex;
             align-items: baseline;
-            padding: 12px 0;
+            padding: 8px 0; /* 恢復較小padding */
             border-bottom: 1px solid rgba(255, 152, 0, 0.2);
         }
         
@@ -402,28 +402,30 @@
         .info-number {
             background: #ff9800;
             color: white;
-            width: 32px;
-            height: 32px;
+            width: 24px; /* 恢復較小 */
+            height: 24px; /* 恢復較小 */
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 16px;
-            margin-right: 15px;
+            font-size: 12px; /* 恢復較小 */
+            margin-right: 12px;
             flex-shrink: 0;
         }
         
         .info-label {
-            font-size: 16px;
+            font-size: 11px; /* 恢復原大小 */
             color: #e65100;
             font-weight: 700;
-            min-width: 120px;
-            margin-right: 15px;
+            min-width: 100px; /* 恢復較小 */
+            margin-right: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .info-value {
-            font-size: 18px;
+            font-size: 14px; /* 恢復原大小 */
             color: #212121;
             font-weight: 600;
             flex: 1;
@@ -598,11 +600,16 @@
             }
             
             .info-number {
-                margin-bottom: 8px;
+                margin-bottom: 5px;
             }
             
             .info-label {
-                margin-bottom: 5px;
+                margin-bottom: 3px;
+                font-size: 10px;
+            }
+            
+            .info-value {
+                font-size: 13px;
             }
         }
     </style>
@@ -610,14 +617,14 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📚 HKPL 圖書查詢系統（優化版）</h1>
+            <h1>📚 HKPL 圖書查詢系統（修正版）</h1>
             <p>即時查詢 | 位置管理 | Manual Select | 資料匯出</p>
         </div>
         
         <!-- 控制面板 -->
         <div class="control-panel">
             <div class="control-grid">
-                <!-- 2.1 顯示數量設定 -->
+                <!-- 顯示數量設定 -->
                 <div class="control-section">
                     <div class="control-title"><span>1</span> 顯示設定</div>
                     <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
@@ -628,7 +635,7 @@
                     <div class="helper-text">設定查詢結果顯示的圖書館數量上限（預設100）</div>
                 </div>
                 
-                <!-- 2.2 單一位置更新（需求4：更新後清除書名，保留位置） -->
+                <!-- 單一位置更新 -->
                 <div class="control-section">
                     <div class="control-title"><span>2</span> 單一位置更新</div>
                     <div class="input-group">
@@ -639,7 +646,7 @@
                     <div class="helper-text">更新後自動清除書名欄，位置欄保留供下次使用</div>
                 </div>
                 
-                <!-- 2.3 批量輸入書目位置（需求5：刪除預覽鍵，需求6：處理邏輯修改） -->
+                <!-- 批量位置更新（需求3：移除預覽鍵，無確認框） -->
                 <div class="control-section">
                     <div class="control-title"><span>3</span> 批量位置更新</div>
                     <div class="batch-default-location">
@@ -648,12 +655,12 @@
                     </div>
                     <textarea id="batchData" placeholder="格式：書名,位置 或 僅書名（使用上方預設位置）&#10;每行只取前14個字元&#10;例如：&#10;哈利波特與魔法石,3F-A區&#10;魔戒現身&#10;小王子,2F-C區"></textarea>
                     <div style="display: flex; gap: 8px; margin-top: 8px;">
-                        <!-- 需求5：刪除預覽鍵 -->
+                        <!-- 需求3：直接更新，無預覽鍵，無確認框 -->
                         <button class="btn-primary" onclick="submitBatchUpdate()" style="width: 100%;">
                             確認批量更新
                         </button>
                     </div>
-                    <div class="helper-text">每行只取前14位字元處理。失敗項目會記錄到 AddNewAddressErr 工作表</div>
+                    <div class="helper-text">直接執行更新，無須確認。每行只取前14位字元處理。失敗項目會記錄到 Error 工作表</div>
                 </div>
             </div>
         </div>
@@ -730,7 +737,7 @@
             }
         }
         
-        // 需求4：單一位置更新，更新後清除書名欄，保留位置欄
+        // 單一位置更新：清除書名，保留位置
         async function updateSingleLocation() {
             const bookKey = document.getElementById('singleBookKey').value.trim();
             const location = document.getElementById('singleLocation').value.trim();
@@ -750,10 +757,9 @@
                 
                 if (data.success) {
                     showStatus(`✅ 更新成功！第 ${data.row} 行：${bookKey} → ${location || '(空)'}`, 'success');
-                    // 需求4：清除書名欄，保留位置欄
+                    // 清除書名欄，保留位置欄
                     document.getElementById('singleBookKey').value = '';
-                    // document.getElementById('singleLocation').value = ''; // 不執行這行，保留位置
-                    document.getElementById('singleBookKey').focus(); // 自動聚焦回書名欄方便連續輸入
+                    document.getElementById('singleBookKey').focus();
                 } else {
                     showStatus('❌ ' + data.error, 'error');
                 }
@@ -762,7 +768,7 @@
             }
         }
         
-        // 需求6：批量位置更新功能修改
+        // 需求3：批量更新無確認框，優化超時處理
         async function submitBatchUpdate() {
             const rawData = document.getElementById('batchData').value.trim();
             const defaultLoc = document.getElementById('batchDefaultLocation').value.trim();
@@ -772,10 +778,21 @@
                 return;
             }
             
-            // 需求6.1：按換行分割，只取前14位字串
+            // 處理資料：按換行分割，只取前14位
             const lines = rawData.split('\n').filter(l => l.trim());
+            
+            if (lines.length === 0) {
+                showStatus('沒有有效資料', 'error');
+                return;
+            }
+            
+            if (lines.length > 100) {
+                showStatus('資料筆數過多（超過100筆），建議分批處理以避免超時', 'error');
+                return;
+            }
+            
             const processedLines = lines.map(line => {
-                // 如果有逗號，只取逗號前14位，否則整行取前14位
+                const trimmedLine = line.trim();
                 if (line.includes(',')) {
                     const parts = line.split(',');
                     const key = parts[0].trim().substring(0, 14);
@@ -787,39 +804,80 @@
                     const loc = parts[1] ? parts[1].trim() : defaultLoc;
                     return key + (loc ? ',' + loc : '');
                 } else {
-                    // 只有書名，取前14位
-                    return line.trim().substring(0, 14) + (defaultLoc ? ',' + defaultLoc : '');
+                    return trimmedLine.substring(0, 14) + (defaultLoc ? ',' + defaultLoc : '');
                 }
             });
             
             const processedData = processedLines.join('\n');
             
-            if (!confirm(`確定要批量更新位置嗎？\n\n處理筆數：${lines.length} 筆\n（每行已截斷至14字元）\n預設位置：${defaultLoc || '無'}`)) {
-                return;
-            }
-            
-            showStatus('批量更新中，請稍候...', 'info');
+            showStatus(`正在處理 ${lines.length} 筆資料...`, 'info');
             
             try {
-                // 需求6.2：執行batchUpdateLocation
-                const result = await apiCall('batchUpdateLocation', { 
+                // 增加超時時間到60秒（透過setTimeout調整）
+                const result = await apiCallWithTimeout('batchUpdateLocation', { 
                     data: processedData,
-                    defaultLocation: '' // 已在前端處理，此處傳空
-                });
+                    defaultLocation: ''
+                }, 60000); // 60秒超時
                 
                 if (result.success) {
-                    // 需求6.3：日誌欄回傳成功及失敗的數量
                     const msg = `✅ 批量更新完成！成功：${result.summary.success} 筆，失敗：${result.summary.failed} 筆`;
                     showStatus(msg, result.summary.failed > 0 ? 'info' : 'success');
-                    
-                    // 清空輸入框
                     document.getElementById('batchData').value = '';
                 } else {
                     showStatus('❌ ' + result.error, 'error');
                 }
             } catch (e) {
-                showStatus('批量更新失敗：' + e.message, 'error');
+                if (e.message === '請求超時') {
+                    showStatus('❌ 處理超時：資料筆數過多，請減少至50筆以下分批處理', 'error');
+                } else {
+                    showStatus('批量更新失敗：' + e.message, 'error');
+                }
             }
+        }
+        
+        // 優化的API呼叫（支援自定義超時）
+        function apiCallWithTimeout(action, params = {}, timeoutMs = 30000) {
+            return new Promise((resolve, reject) => {
+                const callbackName = 'cb_' + Date.now();
+                const script = document.createElement('script');
+                
+                const queryParams = new URLSearchParams({
+                    action: action,
+                    callback: callbackName,
+                    ...params
+                });
+                
+                const url = `${API_URL}?${queryParams.toString()}`;
+                
+                const timeout = setTimeout(() => {
+                    cleanup();
+                    reject(new Error('請求超時'));
+                }, timeoutMs);
+                
+                function cleanup() {
+                    clearTimeout(timeout);
+                    if (script.parentNode) script.parentNode.removeChild(script);
+                    delete window[callbackName];
+                }
+                
+                window[callbackName] = (data) => {
+                    cleanup();
+                    resolve(data);
+                };
+                
+                script.onerror = () => {
+                    cleanup();
+                    reject(new Error('載入失敗'));
+                };
+                
+                script.src = url;
+                document.head.appendChild(script);
+            });
+        }
+        
+        // 標準API呼叫（30秒）
+        function apiCall(action, params = {}) {
+            return apiCallWithTimeout(action, params, 30000);
         }
         
         async function loadManualSelect() {
@@ -993,13 +1051,13 @@
             }
         }
         
-        // 需求2、3：書目資料直排顯示，按指定順序
+        // 書目資料顯示（恢復原大小，保持直排）
         function displayResults(data) {
             const book = data.bookInfo;
             const libs = data.libraries;
             const rawLocation = data.rawLocation || '';
             
-            // 需求3：按指定順序顯示書目資料
+            // 按指定順序顯示書目資料（原大小）
             const bookFields = [
                 { num: 1, key: 'title', label: '書名' },
                 { num: 2, key: 'catalogNo', label: '館藏編目號碼' },
@@ -1020,7 +1078,7 @@
             
             bookFields.forEach(field => {
                 const value = book[field.key] || '-';
-                if (value !== '-' || field.key === 'title') { // 標題必顯示，其他有值才顯示
+                if (value !== '-' || field.key === 'title') {
                     bookInfoHtml += `
                         <div class="info-row">
                             <div class="info-number">${field.num}</div>
@@ -1035,7 +1093,7 @@
             
             let html = bookInfoHtml;
             
-            // 需求1：放大3倍的可選圖書館及位置資訊
+            // 可選圖書館及位置保持放大3倍
             html += `
                 <div class="library-summary">
                     <span>📚 可選圖書館：${libs.total} 間 (顯示前 ${libs.displayed} 筆)</span>
@@ -1108,45 +1166,6 @@
                 </div>
             `;
             document.getElementById('statusBar').style.display = 'none';
-        }
-        
-        function apiCall(action, params = {}) {
-            return new Promise((resolve, reject) => {
-                const callbackName = 'cb_' + Date.now();
-                const script = document.createElement('script');
-                
-                const queryParams = new URLSearchParams({
-                    action: action,
-                    callback: callbackName,
-                    ...params
-                });
-                
-                const url = `${API_URL}?${queryParams.toString()}`;
-                
-                const timeout = setTimeout(() => {
-                    cleanup();
-                    reject(new Error('請求超時'));
-                }, 30000);
-                
-                function cleanup() {
-                    clearTimeout(timeout);
-                    if (script.parentNode) script.parentNode.removeChild(script);
-                    delete window[callbackName];
-                }
-                
-                window[callbackName] = (data) => {
-                    cleanup();
-                    resolve(data);
-                };
-                
-                script.onerror = () => {
-                    cleanup();
-                    reject(new Error('載入失敗'));
-                };
-                
-                script.src = url;
-                document.head.appendChild(script);
-            });
         }
         
         function showStatus(message, type) {
