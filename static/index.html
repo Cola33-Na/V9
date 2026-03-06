@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HKPL 圖書查詢系統 - API版（含位置管理）</title>
+    <title>HKPL 圖書查詢系統 - API版（優化版）</title>
     <style>
         * {
             margin: 0;
@@ -162,6 +162,11 @@
             color: white;
         }
         
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+        
         .btn-sm {
             padding: 6px 12px;
             font-size: 12px;
@@ -218,11 +223,18 @@
             justify-content: space-between;
             align-items: center;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
         }
         
         .manual-item:hover {
             background: #f8f9fa;
+            transform: translateX(2px);
         }
         
         .manual-item:last-child {
@@ -241,6 +253,12 @@
             font-weight: bold;
             padding: 2px 6px;
             border-radius: 4px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .manual-item:hover .manual-item-remove {
+            opacity: 1;
         }
         
         .manual-item-remove:hover {
@@ -263,6 +281,12 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .export-btn {
+            width: 100%;
+            margin-top: 5px;
         }
         
         .empty-list {
@@ -353,6 +377,28 @@
             font-size: 14px;
             color: #212121;
             font-weight: 600;
+        }
+        
+        .library-summary {
+            background: #e3f2fd;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #1976d2;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .location-badge {
+            background: #fff;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #555;
+            border: 1px solid #ddd;
         }
         
         /* 表格 */
@@ -479,6 +525,14 @@
             display: block;
         }
         
+        .batch-default-location {
+            margin-bottom: 10px;
+            padding: 8px;
+            background: #fff3cd;
+            border-radius: 6px;
+            border: 1px solid #ffeaa7;
+        }
+        
         @media (max-width: 968px) {
             .main-layout {
                 grid-template-columns: 1fr;
@@ -507,14 +561,18 @@
             button {
                 width: 100%;
             }
+            
+            .manual-actions {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>📚 HKPL 圖書查詢系統（API版）</h1>
-            <p>即時查詢 | 位置管理 | Manual Select</p>
+            <h1>📚 HKPL 圖書查詢系統（API優化版）</h1>
+            <p>即時查詢 | 位置管理 | Manual Select | 資料匯出</p>
         </div>
         
         <!-- 控制面板 -->
@@ -539,19 +597,23 @@
                         <input type="text" id="singleLocation" placeholder="新位置（C欄）" style="width: 120px;">
                         <button class="btn-success btn-sm" onclick="updateSingleLocation()">更新</button>
                     </div>
-                    <div class="helper-text">更新 RawData 工作表中指定書目的位置（C欄）</div>
+                    <div class="helper-text">更新 RawData 工作表中指定書目的位置（C欄），輸入保留不自動清除</div>
                 </div>
                 
-                <!-- 2.3 批量輸入書目位置 -->
+                <!-- 2.3 批量輸入書目位置（加入預設位置欄） -->
                 <div class="control-section">
                     <div class="control-title"><span>3</span> 批量位置更新</div>
-                    <textarea id="batchData" placeholder="格式：書名,位置&#10;例如：&#10;哈利波特,3F-A區&#10;魔戒,2F-B區&#10;（每行一筆，可用逗號或Tab分隔）"></textarea>
+                    <div class="batch-default-location">
+                        <label style="font-size: 12px; color: #856404; font-weight: 600;">預設位置（當下方未指定位置時使用）：</label>
+                        <input type="text" id="batchDefaultLocation" placeholder="輸入預設位置..." style="width: 100%; margin-top: 5px; border-color: #ffeaa7;">
+                    </div>
+                    <textarea id="batchData" placeholder="格式：書名,位置 或 僅書名（使用上方預設位置）&#10;例如：&#10;哈利波特,3F-A區&#10;魔戒&#10;小王子,2F-C區"></textarea>
                     <div class="batch-preview" id="batchPreview"></div>
                     <div style="display: flex; gap: 8px; margin-top: 8px;">
                         <button class="btn-success btn-sm" onclick="previewBatch()">預覽</button>
                         <button class="btn-primary btn-sm" onclick="submitBatchUpdate()">確認批量更新</button>
                     </div>
-                    <div class="helper-text">批量更新多筆書目位置，失敗項目會記錄到 AddNewAddressErr 工作表</div>
+                    <div class="helper-text">批量更新多筆書目位置。若行內無位置，將使用「預設位置」。失敗項目會記錄到 AddNewAddressErr 工作表</div>
                 </div>
             </div>
         </div>
@@ -583,11 +645,11 @@
                 </div>
             </div>
             
-            <!-- 右側 Manual Select 面板 -->
+            <!-- 右側 Manual Select 面板（優化版） -->
             <div class="sidebar">
                 <h3>
                     📋 Manual Select
-                    <button class="btn-sm btn-primary" onclick="loadManualSelect()" style="padding: 4px 10px; font-size: 11px;">刷新</button>
+                    <span id="manualCount" style="font-size: 12px; color: #666; font-weight: normal;">(0)</span>
                 </h3>
                 
                 <div class="manual-list" id="manualList">
@@ -603,6 +665,11 @@
                     <button class="btn-danger btn-sm" onclick="clearManualSelect()">清空全部</button>
                     <button class="btn-secondary btn-sm" onclick="removeLastManual()">移除最後</button>
                 </div>
+                
+                <!-- 匯出功能 -->
+                <button class="btn-info btn-sm export-btn" onclick="exportManualSelect()">
+                    📥 匯出清單 (CSV)
+                </button>
             </div>
         </div>
     </div>
@@ -611,11 +678,13 @@
         // ================= 設定 =================
         const API_URL = 'https://script.google.com/macros/s/AKfycbzl-HifsUB1oZqmtQPLjG0fYCrxZQYTiEWTC5UzftyAhKTj_Ns3BpqavhGFjaHMrRAi/exec';
         let currentDisplayLimit = 100;
+        let manualSelectData = []; // 本地快取，加速顯示
         
         // ================= 初始化 =================
         document.addEventListener('DOMContentLoaded', function() {
             loadManualSelect();
             document.getElementById('batchData').addEventListener('input', previewBatch);
+            document.getElementById('batchDefaultLocation').addEventListener('input', previewBatch);
         });
         
         // ================= 2.1 顯示數量設定 =================
@@ -627,7 +696,7 @@
             }
         }
         
-        // ================= 2.2 單一位置更新 =================
+        // ================= 2.2 單一位置更新（不清除輸入） =================
         async function updateSingleLocation() {
             const bookKey = document.getElementById('singleBookKey').value.trim();
             const location = document.getElementById('singleLocation').value.trim();
@@ -647,8 +716,7 @@
                 
                 if (data.success) {
                     showStatus(`✅ 更新成功！第 ${data.row} 行：${bookKey} → ${location || '(空)'}`, 'success');
-                    document.getElementById('singleBookKey').value = '';
-                    document.getElementById('singleLocation').value = '';
+                    // 不清除輸入欄位，保留以供連續輸入
                 } else {
                     showStatus('❌ ' + data.error, 'error');
                 }
@@ -657,9 +725,10 @@
             }
         }
         
-        // ================= 2.3 批量位置更新 =================
+        // ================= 2.3 批量位置更新（支援預設位置） =================
         function previewBatch() {
             const data = document.getElementById('batchData').value.trim();
+            const defaultLoc = document.getElementById('batchDefaultLocation').value.trim();
             const preview = document.getElementById('batchPreview');
             
             if (!data) {
@@ -672,10 +741,11 @@
             
             lines.slice(0, 5).forEach(line => {
                 const parts = line.split(/[,\t]/);
-                if (parts.length >= 2) {
-                    html += `• ${parts[0].trim()} → ${parts[1].trim()}<br>`;
-                } else {
-                    html += `• <span style="color:red">${line}</span> (格式錯誤)<br>`;
+                const book = parts[0].trim();
+                const loc = (parts.length >= 2 && parts[1].trim()) ? parts[1].trim() : (defaultLoc || '<span style="color:#dc3545">無位置</span>');
+                
+                if (book) {
+                    html += `• ${book} → ${loc}<br>`;
                 }
             });
             
@@ -689,19 +759,24 @@
         
         async function submitBatchUpdate() {
             const data = document.getElementById('batchData').value.trim();
+            const defaultLoc = document.getElementById('batchDefaultLocation').value.trim();
+            
             if (!data) {
                 showStatus('請輸入批量資料', 'error');
                 return;
             }
             
-            if (!confirm('確定要批量更新位置嗎？此操作將直接修改 RawData 工作表。')) {
+            if (!confirm('確定要批量更新位置嗎？此操作將直接修改 RawData 工作表。\n\n預設位置：' + (defaultLoc || '無'))) {
                 return;
             }
             
             showStatus('批量更新中，請稍候...', 'info');
             
             try {
-                const result = await apiCall('batchUpdateLocation', { data: data });
+                const result = await apiCall('batchUpdateLocation', { 
+                    data: data,
+                    defaultLocation: defaultLoc
+                });
                 
                 if (result.success) {
                     let msg = `✅ 批量更新完成！成功：${result.summary.success} 筆`;
@@ -709,8 +784,7 @@
                         msg += `，失敗：${result.summary.failed} 筆（已記錄到 Error 工作表）`;
                     }
                     showStatus(msg, result.summary.failed > 0 ? 'info' : 'success');
-                    document.getElementById('batchData').value = '';
-                    document.getElementById('batchPreview').classList.remove('show');
+                    // 不清除輸入，保留以供確認或重試
                 } else {
                     showStatus('❌ ' + result.error, 'error');
                 }
@@ -719,31 +793,41 @@
             }
         }
         
-        // ================= Manual Select 功能 =================
+        // ================= Manual Select 功能（優化加速版） =================
         async function loadManualSelect() {
             try {
                 const data = await apiCall('getManualSelect');
-                const listDiv = document.getElementById('manualList');
-                
-                if (!data.success || !data.data || data.data.length === 0) {
-                    listDiv.innerHTML = '<div class="empty-list">暫無項目<br>在下方輸入添加</div>';
-                    return;
+                if (data.success) {
+                    manualSelectData = data.data || [];
+                    renderManualList();
                 }
-                
-                let html = '';
-                data.data.forEach((item, index) => {
-                    html += `
-                        <div class="manual-item">
-                            <span class="manual-item-text" onclick="useManualItem('${escapeHtml(item)}')">${escapeHtml(item)}</span>
-                            <span class="manual-item-remove" onclick="removeManualItem('${escapeHtml(item)}')" title="移除">×</span>
-                        </div>
-                    `;
-                });
-                listDiv.innerHTML = html;
-                
             } catch (e) {
                 document.getElementById('manualList').innerHTML = '<div class="empty-list">載入失敗</div>';
             }
+        }
+        
+        // 本地渲染，無延遲
+        function renderManualList() {
+            const listDiv = document.getElementById('manualList');
+            const countSpan = document.getElementById('manualCount');
+            
+            countSpan.textContent = `(${manualSelectData.length})`;
+            
+            if (manualSelectData.length === 0) {
+                listDiv.innerHTML = '<div class="empty-list">暫無項目<br>在下方輸入添加</div>';
+                return;
+            }
+            
+            let html = '';
+            manualSelectData.forEach((item, index) => {
+                html += `
+                    <div class="manual-item" style="animation-delay: ${index * 0.05}s">
+                        <span class="manual-item-text" onclick="useManualItem('${escapeHtml(item)}')">${escapeHtml(item)}</span>
+                        <span class="manual-item-remove" onclick="removeManualItem('${escapeHtml(item)}', ${index})" title="移除">×</span>
+                    </div>
+                `;
+            });
+            listDiv.innerHTML = html;
         }
         
         async function addManualItem() {
@@ -751,55 +835,73 @@
             const value = input.value.trim();
             if (!value) return;
             
+            // 立即本地更新（加速）
+            if (!manualSelectData.includes(value)) {
+                manualSelectData.push(value);
+                renderManualList();
+                input.value = '';
+            }
+            
+            // 背景同步到伺服器
             try {
-                const data = await apiCall('addToManualSelect', { value: value });
-                if (data.success) {
-                    input.value = '';
-                    loadManualSelect();
-                } else {
-                    alert(data.error || '添加失敗');
-                }
+                await apiCall('addToManualSelect', { value: value });
             } catch (e) {
-                alert('添加失敗：' + e.message);
+                console.error('背景同步失敗:', e);
             }
         }
         
-        async function removeManualItem(value) {
+        async function removeManualItem(value, index) {
             if (!confirm('確定移除「' + value + '」？')) return;
             
+            // 立即本地更新（加速）
+            manualSelectData.splice(index, 1);
+            renderManualList();
+            
+            // 背景同步到伺服器
             try {
-                const data = await apiCall('removeFromManualSelect', { value: value });
-                if (data.success) {
-                    loadManualSelect();
-                }
+                await apiCall('removeFromManualSelect', { value: value });
             } catch (e) {
-                alert('移除失敗：' + e.message);
+                console.error('背景同步失敗:', e);
             }
         }
         
         async function removeLastManual() {
-            try {
-                const data = await apiCall('getManualSelect');
-                if (data.success && data.data.length > 0) {
-                    const lastItem = data.data[data.data.length - 1];
-                    await removeManualItem(lastItem);
-                }
-            } catch (e) {
-                console.error(e);
-            }
+            if (manualSelectData.length === 0) return;
+            const lastItem = manualSelectData[manualSelectData.length - 1];
+            await removeManualItem(lastItem, manualSelectData.length - 1);
         }
         
         async function clearManualSelect() {
             if (!confirm('確定清空全部 Manual Select 項目？')) return;
             
+            manualSelectData = [];
+            renderManualList();
+            
             try {
-                const data = await apiCall('clearManualSelect');
-                if (data.success) {
-                    loadManualSelect();
-                }
+                await apiCall('clearManualSelect');
             } catch (e) {
-                alert('清空失敗：' + e.message);
+                console.error('清空失敗:', e);
             }
+        }
+        
+        // ================= 匯出功能 =================
+        function exportManualSelect() {
+            if (manualSelectData.length === 0) {
+                alert('沒有可匯出的資料');
+                return;
+            }
+            
+            const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + 
+                "項目名稱\n" + 
+                manualSelectData.join("\n");
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "manual_select_" + new Date().toISOString().slice(0,10) + ".csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
         
         function useManualItem(value) {
@@ -807,7 +909,7 @@
             searchBook();
         }
         
-        // ================= 查詢功能（已修正） =================
+        // ================= 查詢功能（顯示可選圖書館及位置） =================
         async function searchBook() {
             const input = document.getElementById('searchInput').value.trim();
             const btn = document.getElementById('searchBtn');
@@ -833,19 +935,18 @@
                     displayResults(data);
                     showStatus(`✅ 查詢成功（${data.elapsedSeconds?.toFixed(2) || '?'}s）`, 'success');
                     
-                    // ===== 修正1：查詢成功後自動添加到 Manual Select 並清除輸入欄 =====
-                    await autoAddToManualSelect(input);
+                    // 查詢成功後添加到 Manual Select（背景執行，不阻擋）
+                    addToManualSelectBackground(input);
                     document.getElementById('searchInput').value = '';
                     
                 } else if (data.success && !data.found) {
                     resultsDiv.innerHTML = `
                         <div class="empty-state">
                             <p>找不到「${escapeHtml(input)}」</p>
-                            <p style="font-size: 13px; margin-top: 10px;">請確認書名或編號是否正確，或先使用「單一/批量位置更新」功能建立對應關係</p>
+                            <p style="font-size: 13px; margin-top: 10px;">請確認書名或編號是否正確</p>
                         </div>
                     `;
                     showStatus('查無資料', 'error');
-                    // 查無資料時也清空輸入欄，但不加入 Manual Select
                     document.getElementById('searchInput').value = '';
                 } else {
                     throw new Error(data.error || '未知錯誤');
@@ -859,21 +960,24 @@
             }
         }
         
-        // 新增：自動添加到 Manual Select（不重複）
-        async function autoAddToManualSelect(value) {
-            try {
-                const data = await apiCall('addToManualSelect', { value: value });
-                if (data.success) {
-                    loadManualSelect(); // 刷新右側列表
+        // 背景添加到 Manual Select（不等待，不阻擋UI）
+        async function addToManualSelectBackground(value) {
+            if (!manualSelectData.includes(value)) {
+                manualSelectData.push(value);
+                renderManualList();
+                
+                try {
+                    await apiCall('addToManualSelect', { value: value });
+                } catch (e) {
+                    console.error('背景添加失敗:', e);
                 }
-            } catch (e) {
-                console.log('自動添加失敗:', e);
             }
         }
         
         function displayResults(data) {
             const book = data.bookInfo;
             const libs = data.libraries;
+            const rawLocation = data.rawLocation || '';
             
             let html = `
                 <div class="book-info">
@@ -905,12 +1009,20 @@
                 </div>
             `;
             
+            // 可選圖書館及位置資訊（需求3）
+            html += `
+                <div class="library-summary">
+                    <span>📍 可選圖書館：${libs.total} 間 (顯示前 ${libs.displayed} 筆)</span>
+                    ${rawLocation ? `<span class="location-badge">位置: ${escapeHtml(rawLocation)}</span>` : '<span class="location-badge" style="color:#999">無位置資料</span>'}
+                </div>
+            `;
+            
             if (libs && libs.list && libs.list.length > 0) {
                 html += `
                     <div class="libraries-section">
                         <div class="section-header">
                             <div>
-                                <span class="section-title">🏛️ 圖書館館藏</span>
+                                <span class="section-title">🏛️ 圖書館館藏清單</span>
                                 <span class="badge badge-primary" style="margin-left: 10px;">
                                     顯示 ${libs.displayed} / ${libs.total} 間
                                 </span>
