@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>圖書查詢</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft JhengHei", "微軟正黑體", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 26px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        /* 主布局：左工具欄 + 中內容 + 右Manual Select */
+        .main-wrapper {
+            display: grid;
+            grid-template-columns: 80px 1fr 320px;
+            min-height: 600px;
+        }
+        
+        /* 左側工具欄 - 四個功能按鈕 */
+        .left-toolbar {
+            background: #f8f9fa;
+            border-right: 1px solid #e9ecef;
+            padding: 20px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .tool-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            background: white;
+            color: #667eea;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+        }
+        
+        .tool-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .tool-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #764ba2;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .tool-btn .label {
+            font-size: 10px;
+            font-weight: 600;
+        }
+        
+        /* 中間內容區域 */
+        .content-area {
+            padding: 30px;
+            overflow-y: auto;
+            background: #fafafa;
+        }
+        
+        /* 功能區塊（預設隱藏，透過JS切換） */
+        .function-block {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .function-block.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .block-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        /* 控制區塊樣式 */
+        .control-box {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        input[type="text"], input[type="number"], textarea {
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        
+        input[type="text"]:focus, input[type="number"]:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        input[type="number"] {
+            width: 100px;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            resize: vertical;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+        
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+        
+        /* 右側 Manual Select */
+        .sidebar {
+            background: #f8f9fa;
+            border-left: 1px solid #e9ecef;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .sidebar h3 {
+            font-size: 16px;
+            color: #495057;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .manual-list {
+            flex: 1;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+            max-height: 500px;
+        }
+        
+        .manual-item {
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .manual-item:hover {
+            background: #f8f9fa;
+            transform: translateX(2px);
+        }
+        
+        .manual-item:last-child {
+            border-bottom: none;
+        }
+        
+        .manual-item-text {
+            flex: 1;
+            word-break: break-all;
+            margin-right: 8px;
+        }
+        
+        .manual-item-remove {
+            color: #dc3545;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .manual-item:hover .manual-item-remove {
+            opacity: 1;
+        }
+        
+        .manual-input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .manual-input-group input {
+            flex: 1;
+            padding: 8px;
+            font-size: 13px;
+        }
+        
+        .manual-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .export-btn {
+            width: 100%;
+            margin-top: 5px;
+        }
+        
+        .empty-list {
+            text-align: center;
+            color: #adb5bd;
+            padding: 20px;
+            font-size: 13px;
+        }
+        
+        /* 搜尋區特殊樣式 */
+        .search-hint {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 15px;
+            padding: 12px 15px;
+            background: #e3f2fd;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+        
+        .search-box input[type="text"] {
+            flex: 1;
+            padding: 15px 20px;
+            font-size: 18px;
+            border: 3px solid #667eea;
+            border-radius: 10px;
+        }
+        
+        /* 結果顯示 */
+        .status-bar {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .status-bar.info {
+            background: #e3f2fd;
+            color: #1976d2;
+            display: block;
+        }
+        
+        .status-bar.error {
+            background: #ffebee;
+            color: #c62828;
+            display: block;
+        }
+        
+        .status-bar.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            display: block;
+        }
+        
+        /* 可選圖書館及位置保持放大3倍 */
+        .library-summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 40px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            font-size: 42px;
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+            line-height: 1.4;
+        }
+        
+        .location-badge {
+            background: rgba(255,255,255,0.95);
+            color: #764ba2;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 36px;
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            border: 3px solid white;
+        }
+        
+        /* 書目資料原大小直排 */
+        .book-info {
+            background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+            border-left: 4px solid #ff9800;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-radius: 0 10px 10px 0;
+        }
+        
+        .book-info h2 {
+            color: #e65100;
+            margin-bottom: 15px;
+            font-size: 20px;
+            font-weight: 600;
+            border-bottom: 2px solid #ff9800;
+            padding-bottom: 10px;
+        }
+        
+        .info-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .info-row {
+            display: flex;
+            align-items: baseline;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 152, 0, 0.2);
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .info-number {
+            background: #ff9800;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 12px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        
+        .info-label {
+            font-size: 11px;
+            color: #e65100;
+            font-weight: 700;
+            min-width: 100px;
+            margin-right: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .info-value {
+            font-size: 14px;
+            color: #212121;
+            font-weight: 600;
+            flex: 1;
+            word-break: break-word;
+        }
+        
+        /* 表格 */
+        .libraries-section {
+            margin-top: 20px;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .badge-primary {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        
+        .badge-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            font-size: 13px;
+        }
+        
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        th {
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .status-available {
+            color: #2e7d32;
+            font-weight: 600;
+        }
+        
+        .status-unavailable {
+            color: #c62828;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #757575;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9e9e9e;
+        }
+        
+        .helper-text {
+            font-size: 13px;
+            color: #6c757d;
+            margin-top: 10px;
+            line-height: 1.5;
+        }
+        
+        .batch-default-location {
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #fff3cd;
+            border-radius: 8px;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .batch-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .batch-actions button {
+            flex: 1;
+        }
+        
+        @media (max-width: 968px) {
+            .main-wrapper {
+                grid-template-columns: 70px 1fr;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+            
+            .library-summary {
+                font-size: 24px;
+                padding: 20px;
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .location-badge {
+                font-size: 20px;
+            }
+            
+            .left-toolbar {
+                padding: 15px 5px;
+            }
+            
+            .tool-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+            
+            .tool-btn .label {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .main-wrapper {
+                grid-template-columns: 1fr;
+            }
+            
+            .left-toolbar {
+                flex-direction: row;
+                justify-content: center;
+                padding: 10px;
+                border-right: none;
+                border-bottom: 1px solid #e9ecef;
+                gap: 10px;
+            }
+            
+            .search-box {
+                flex-direction: column;
+            }
+            
+            .input-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .input-group input {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 圖書查詢</h1>
+        </div>
+        
+        <!-- 主內容區 -->
+        <div class="main-wrapper">
+            <!-- 左側工具欄 - 四個功能按鈕（需求1） -->
+            <div class="left-toolbar">
+                <button class="tool-btn active" data-target="search" onclick="switchPanel('search')" title="圖書查詢">
+                    <span>🔍</span>
+                    <span class="label">圖書查詢</span>
+                </button>
+                <button class="tool-btn" data-target="display" onclick="switchPanel('display')" title="顯示設定">
+                    <span>⚙️</span>
+                    <span class="label">顯示設定</span>
+                </button>
+                <button class="tool-btn" data-target="single" onclick="switchPanel('single')" title="單一位置更新">
+                    <span>📝</span>
+                    <span class="label">單一位置更新</span>
+                </button>
+                <button class="tool-btn" data-target="batch" onclick="switchPanel('batch')" title="批量位置更新">
+                    <span>📋</span>
+                    <span class="label">批量位置更新</span>
+                </button>
+            </div>
+            
+            <!-- 中間內容區 -->
+            <div class="content-area">
+                
+                <!-- 1) 圖書查詢功能區（預設顯示） -->
+                <div id="panel-search" class="function-block active">
+                    <div class="block-title">🔍 圖書查詢</div>
+                    
+                    <div class="control-box">
+                        <div class="search-hint">
+                            💡 請輸入14位數條碼進行查詢（例如：9789861234567）
+                        </div>
+                        
+                        <div class="search-box">
+                            <input type="text" id="searchInput" placeholder="請輸入14位數條碼..." autocomplete="off" maxlength="14">
+                            <button class="btn-primary" onclick="searchBook()" id="searchBtn" style="padding: 15px 35px; font-size: 16px;">
+                                查詢
+                            </button>
+                            <button class="btn-secondary" onclick="clearResults()">
+                                清除
+                            </button>
+                        </div>
+                        
+                        <div id="statusBar" class="status-bar"></div>
+                        
+                        <div id="results">
+                            <div class="empty-state">
+                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.3; margin-bottom: 16px;">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <path d="m21 21-4.35-4.35"></path>
+                                </svg>
+                                <p>請輸入14位數條碼開始查詢</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 2) 顯示設定功能區（預設隱藏） -->
+                <div id="panel-display" class="function-block">
+                    <div class="block-title">⚙️ 顯示設定</div>
+                    
+                    <div class="control-box">
+                        <div class="control-title" style="margin-bottom: 15px; font-size: 16px;">
+                            <span style="background: #667eea; color: white; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 8px;">1</span>
+                            顯示數量設定
+                        </div>
+                        <div class="input-group">
+                            <label style="font-size: 15px; color: #555;">圖書館顯示數量：</label>
+                            <input type="number" id="displayLimit" value="100" min="1" max="500" style="width: 120px; font-size: 16px;">
+                            <button class="btn-secondary" onclick="updateDisplayLimit()">套用設定</button>
+                        </div>
+                        <div class="helper-text">設定查詢結果顯示的圖書館數量上限（預設100筆）</div>
+                    </div>
+                </div>
+                
+                <!-- 3) 單一位置更新功能區（預設隱藏） -->
+                <div id="panel-single" class="function-block">
+                    <div class="block-title">📝 單一位置更新</div>
+                    
+                    <div class="control-box">
+                        <div class="control-title" style="margin-bottom: 15px; font-size: 16px;">
+                            <span style="background: #667eea; color: white; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 8px;">2</span>
+                            更新書目位置
+                        </div>
+                        <div class="input-group" style="flex-direction: column; gap: 15px;">
+                            <div style="display: flex; gap: 10px; width: 100%;">
+                                <input type="text" id="singleBookKey" placeholder="14位數條碼（RawData A欄）" style="flex: 1;" maxlength="14">
+                            </div>
+                            <div style="display: flex; gap: 10px; width: 100%;">
+                                <input type="text" id="singleLocation" placeholder="新位置（C欄）" style="flex: 1;">
+                                <button class="btn-success" onclick="updateSingleLocation()" style="min-width: 100px;">更新</button>
+                            </div>
+                        </div>
+                        <div class="helper-text">請輸入14位數字條碼。更新後自動清除條碼欄，位置欄保留供下次使用</div>
+                        
+                        <div id="singleStatus" class="status-bar" style="margin-top: 15px; display: none;"></div>
+                    </div>
+                </div>
+                
+                <!-- 4) 批量位置更新功能區（預設隱藏） -->
+                <div id="panel-batch" class="function-block">
+                    <div class="block-title">📋 批量位置更新</div>
+                    
+                    <div class="control-box">
+                        <div class="control-title" style="margin-bottom: 15px; font-size: 16px;">
+                            <span style="background: #667eea; color: white; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 8px;">3</span>
+                            批量更新書目位置
+                        </div>
+                        
+                        <div class="batch-default-location">
+                            <label style="font-size: 14px; color: #856404; font-weight: 600; display: block; margin-bottom: 8px;">預設位置（當下方未指定位置時使用）：</label>
+                            <input type="text" id="batchDefaultLocation" placeholder="輸入預設位置..." style="width: 100%; border-color: #ffeaa7;">
+                        </div>
+                        
+                        <textarea id="batchData" placeholder="格式：條碼,位置 或 僅條碼（使用上方預設位置）&#10;每行只取前14個字元&#10;例如：&#10;9789861234567,3F-A區&#10;9789861234568&#10;9789861234569,2F-C區"></textarea>
+                        
+                        <div class="batch-actions">
+                            <button class="btn-warning" onclick="clearBatchData()">🗑️ 清空全部</button>
+                            <button class="btn-primary" onclick="submitBatchUpdate()" id="batchUpdateBtn">確認批量更新</button>
+                        </div>
+                        
+                        <div class="helper-text">直接執行更新，無須確認。每行只取前14位字元處理。失敗項目會記錄到 Error 工作表</div>
+                        
+                        <div id="batchStatus" class="status-bar" style="margin-top: 15px; display: none;"></div>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <!-- 右側 Manual Select（始終顯示） -->
+            <div class="sidebar">
+                <h3>
+                    📋 Manual Select
+                    <span id="manualCount" style="font-size: 12px; color: #666; font-weight: normal;">(0)</span>
+                </h3>
+                
+                <div class="manual-list" id="manualList">
+                    <div class="empty-list">載入中...</div>
+                </div>
+                
+                <div class="manual-input-group">
+                    <input type="text" id="newManualItem" placeholder="加入新項目..." onkeypress="if(event.key==='Enter') addManualItem()">
+                    <button class="btn-success btn-sm" onclick="addManualItem()">+</button>
+                </div>
+                
+                <div class="manual-actions">
+                    <button class="btn-danger btn-sm" onclick="clearManualSelect()">清空全部</button>
+                    <button class="btn-secondary btn-sm" onclick="removeLastManual()">移除最後</button>
+                </div>
+                
+                <button class="btn-info btn-sm export-btn" onclick="exportManualSelect()">
+                    📥 匯出清單 (CSV)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzl-HifsUB1oZqmtQPLjG0fYCrxZQYTiEWTC5UzftyAhKTj_Ns3BpqavhGFjaHMrRAi/exec';
+        let currentDisplayLimit = 100;
+        let manualSelectData = [];
+        let currentPanel = 'search'; // 預設顯示圖書查詢
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            loadManualSelect();
+        });
+        
+        // 需求1：切換功能面板，獨立顯示
+        function switchPanel(panelName) {
+            // 隱藏所有功能區塊
+            document.querySelectorAll('.function-block').forEach(block => {
+                block.classList.remove('active');
+            });
+            
+            // 移除所有按鈕的active狀態
+            document.querySelectorAll('.tool-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // 顯示選中的功能區塊
+            document.getElementById('panel-' + panelName).classList.add('active');
+            
+            // 高亮選中的按鈕
+            document.querySelector(`.tool-btn[data-target="${panelName}"]`).classList.add('active');
+            
+            currentPanel = panelName;
+            
+            // 如果是搜尋面板，自動聚焦輸入框
+            if (panelName === 'search') {
+                document.getElementById('searchInput')?.focus();
+            }
+            // 如果是單一位置更新面板，自動聚焦輸入框
+            if (panelName === 'single') {
+                document.getElementById('singleBookKey')?.focus();
+            }
+        }
+        
+        function updateDisplayLimit() {
+            const val = parseInt(document.getElementById('displayLimit').value);
+            if (val && val > 0) {
+                currentDisplayLimit = val;
+                showStatus('display', `已設定顯示數量為 ${val} 筆`, 'success');
+            }
+        }
+        
+        async function updateSingleLocation() {
+            const bookKey = document.getElementById('singleBookKey').value.trim();
+            const location = document.getElementById('singleLocation').value.trim();
+            
+            // 驗證14位純數字
+            const barcodeRegex = /^\d{14}$/;
+            if (!barcodeRegex.test(bookKey)) {
+                showStatus('single', '必須為14位數條碼', 'error');
+                document.getElementById('singleBookKey').focus();
+                return;
+            }
+            
+            showStatus('single', '更新中...', 'info');
+            
+            try {
+                const data = await apiCall('updateSingleLocation', {
+                    bookKey: bookKey,
+                    location: location
+                });
+                
+                if (data.success) {
+                    showStatus('single', `✅ 更新成功！第 ${data.row} 行：${bookKey} → ${location || '(空)'}`, 'success');
+                    document.getElementById('singleBookKey').value = '';
+                    document.getElementById('singleBookKey').focus();
+                } else {
+                    showStatus('single', '❌ ' + data.error, 'error');
+                }
+            } catch (e) {
+                showStatus('single', '更新失敗：' + e.message, 'error');
+            }
+        }
+        
+        async function submitBatchUpdate() {
+            const rawData = document.getElementById('batchData').value.trim();
+            const defaultLoc = document.getElementById('batchDefaultLocation').value.trim();
+            const btn = document.getElementById('batchUpdateBtn');
+            
+            if (!rawData) {
+                showStatus('batch', '請輸入批量資料', 'error');
+                return;
+            }
+            
+            const lines = rawData.split('\n').filter(l => l.trim());
+            
+            if (lines.length === 0) {
+                showStatus('batch', '沒有有效資料', 'error');
+                return;
+            }
+            
+            const processedLines = lines.map(line => {
+                const trimmedLine = line.trim();
+                if (line.includes(',')) {
+                    const parts = line.split(',');
+                    const key = parts[0].trim().substring(0, 14);
+                    const loc = parts[1] ? parts[1].trim() : defaultLoc;
+                    return key + (loc ? ',' + loc : '');
+                } else if (line.includes('\t')) {
+                    const parts = line.split('\t');
+                    const key = parts[0].trim().substring(0, 14);
+                    const loc = parts[1] ? parts[1].trim() : defaultLoc;
+                    return key + (loc ? ',' + loc : '');
+                } else {
+                    return trimmedLine.substring(0, 14) + (defaultLoc ? ',' + defaultLoc : '');
+                }
+            });
+            
+            const processedData = processedLines.join('\n');
+            
+            btn.disabled = true;
+            btn.textContent = '⏳ 處理中...';
+            showStatus('batch', `正在處理 ${lines.length} 筆資料，請稍候...`, 'info');
+            
+            try {
+                const result = await apiCallWithTimeout('batchUpdateLocation', { 
+                    data: processedData,
+                    defaultLocation: ''
+                }, 60000);
+                
+                if (result.success) {
+                    const msg = `✅ 批量更新完成！成功：${result.summary.success} 筆，失敗：${result.summary.failed} 筆`;
+                    showStatus('batch', msg, result.summary.failed > 0 ? 'info' : 'success');
+                    document.getElementById('batchData').value = '';
+                } else {
+                    showStatus('batch', '❌ ' + result.error, 'error');
+                }
+            } catch (e) {
+                if (e.message === '請求超時') {
+                    showStatus('batch', '❌ 處理超時：資料筆數過多，請減少至50筆以下分批處理', 'error');
+                } else {
+                    showStatus('batch', '批量更新失敗：' + e.message, 'error');
+                }
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '確認批量更新';
+            }
+        }
+        
+        // 修改：直接清空，無需確認
+        function clearBatchData() {
+            document.getElementById('batchData').value = '';
+            document.getElementById('batchDefaultLocation').value = '';
+            showStatus('batch', '已清空輸入內容', 'success');
+        }
+        
+        // 根據面板顯示狀態訊息
+        function showStatus(panel, message, type) {
+            let statusId = 'statusBar';
+            if (panel === 'single') statusId = 'singleStatus';
+            else if (panel === 'batch') statusId = 'batchStatus';
+            
+            const bar = document.getElementById(statusId);
+            bar.className = 'status-bar ' + type;
+            bar.textContent = message;
+            bar.style.display = 'block';
+            
+            if (type === 'success' || type === 'info') {
+                setTimeout(() => {
+                    if (bar.textContent === message) {
+                        bar.style.display = 'none';
+                    }
+                }, 5000);
+            }
+        }
+        
+        function apiCallWithTimeout(action, params = {}, timeoutMs = 30000) {
+            return new Promise((resolve, reject) => {
+                const callbackName = 'cb_' + Date.now();
+                const script = document.createElement('script');
+                
+                const queryParams = new URLSearchParams({
+                    action: action,
+                    callback: callbackName,
+                    ...params
+                });
+                
+                const url = `${API_URL}?${queryParams.toString()}`;
+                
+                const timeout = setTimeout(() => {
+                    cleanup();
+                    reject(new Error('請求超時'));
+                }, timeoutMs);
+                
+                function cleanup() {
+                    clearTimeout(timeout);
+                    if (script.parentNode) script.parentNode.removeChild(script);
+                    delete window[callbackName];
+                }
+                
+                window[callbackName] = (data) => {
+                    cleanup();
+                    resolve(data);
+                };
+                
+                script.onerror = () => {
+                    cleanup();
+                    reject(new Error('載入失敗'));
+                };
+                
+                script.src = url;
+                document.head.appendChild(script);
+            });
+        }
+        
+        function apiCall(action, params = {}) {
+            return apiCallWithTimeout(action, params, 30000);
+        }
+        
+        async function loadManualSelect() {
+            try {
+                const data = await apiCall('getManualSelect');
+                if (data.success) {
+                    manualSelectData = data.data || [];
+                    renderManualList();
+                }
+            } catch (e) {
+                document.getElementById('manualList').innerHTML = '<div class="empty-list">載入失敗</div>';
+            }
+        }
+        
+        function renderManualList() {
+            const listDiv = document.getElementById('manualList');
+            const countSpan = document.getElementById('manualCount');
+            
+            countSpan.textContent = `(${manualSelectData.length})`;
+            
+            if (manualSelectData.length === 0) {
+                listDiv.innerHTML = '<div class="empty-list">暫無項目<br>在下方輸入添加</div>';
+                return;
+            }
+            
+            let html = '';
+            manualSelectData.forEach((item, index) => {
+                html += `
+                    <div class="manual-item" style="animation-delay: ${index * 0.05}s">
+                        <span class="manual-item-text" onclick="useManualItem('${escapeHtml(item)}')">${escapeHtml(item)}</span>
+                        <span class="manual-item-remove" onclick="removeManualItem('${escapeHtml(item)}', ${index})" title="移除">×</span>
+                    </div>
+                `;
+            });
+            listDiv.innerHTML = html;
+        }
+        
+        async function addManualItem() {
+            const input = document.getElementById('newManualItem');
+            const value = input.value.trim();
+            if (!value) return;
+            
+            if (!manualSelectData.includes(value)) {
+                manualSelectData.push(value);
+                renderManualList();
+                input.value = '';
+            }
+            
+            try {
+                await apiCall('addToManualSelect', { value: value });
+            } catch (e) {
+                console.error('背景同步失敗:', e);
+            }
+        }
+        
+        async function removeManualItem(value, index) {
+            if (!confirm('確定移除「' + value + '」？')) return;
+            
+            manualSelectData.splice(index, 1);
+            renderManualList();
+            
+            try {
+                await apiCall('removeFromManualSelect', { value: value });
+            } catch (e) {
+                console.error('背景同步失敗:', e);
+            }
+        }
+        
+        async function removeLastManual() {
+            if (manualSelectData.length === 0) return;
+            const lastItem = manualSelectData[manualSelectData.length - 1];
+            await removeManualItem(lastItem, manualSelectData.length - 1);
+        }
+        
+        async function clearManualSelect() {
+            if (!confirm('確定清空全部 Manual Select 項目？')) return;
+            
+            manualSelectData = [];
+            renderManualList();
+            
+            try {
+                await apiCall('clearManualSelect');
+            } catch (e) {
+                console.error('清空失敗:', e);
+            }
+        }
+        
+        function exportManualSelect() {
+            if (manualSelectData.length === 0) {
+                alert('沒有可匯出的資料');
+                return;
+            }
+            
+            const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + 
+                "項目名稱\n" + 
+                manualSelectData.join("\n");
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "manual_select_" + new Date().toISOString().slice(0,10) + ".csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        function useManualItem(value) {
+            // 切換到圖書查詢面板並帶入值
+            switchPanel('search');
+            document.getElementById('searchInput').value = value;
+            searchBook();
+        }
+        
+        async function searchBook() {
+            const input = document.getElementById('searchInput').value.trim();
+            const btn = document.getElementById('searchBtn');
+            const resultsDiv = document.getElementById('results');
+            
+            // 14位純數字驗證
+            const barcodeRegex = /^\d{14}$/;
+            if (!barcodeRegex.test(input)) {
+                showStatus('search', '必須為14位數條碼', 'error');
+                document.getElementById('searchInput').focus();
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = '查詢中...';
+            resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>查詢中...</p></div>';
+            showStatus('search', '查詢進行中...', 'info');
+            
+            try {
+                const data = await apiCall('query', {
+                    input: input,
+                    limit: currentDisplayLimit
+                });
+                
+                if (data.success && data.found) {
+                    displayResults(data);
+                    showStatus('search', `✅ 查詢成功（${data.elapsedSeconds?.toFixed(2) || '?'}s）`, 'success');
+                    
+                    addToManualSelectBackground(input);
+                    document.getElementById('searchInput').value = '';
+                    
+                } else if (data.success && !data.found) {
+                    resultsDiv.innerHTML = `
+                        <div class="empty-state">
+                            <p>找不到條碼「${escapeHtml(input)}」</p>
+                            <p style="font-size: 13px; margin-top: 10px;">請確認條碼是否正確</p>
+                        </div>
+                    `;
+                    showStatus('search', '查無資料', 'error');
+                    document.getElementById('searchInput').value = '';
+                } else {
+                    throw new Error(data.error || '未知錯誤');
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="empty-state"><p>查詢失敗：${escapeHtml(error.message)}</p></div>`;
+                showStatus('search', '查詢失敗：' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '查詢';
+            }
+        }
+        
+        async function addToManualSelectBackground(value) {
+            if (!manualSelectData.includes(value)) {
+                manualSelectData.push(value);
+                renderManualList();
+                
+                try {
+                    await apiCall('addToManualSelect', { value: value });
+                } catch (e) {
+                    console.error('背景添加失敗:', e);
+                }
+            }
+        }
+        
+        function displayResults(data) {
+            const book = data.bookInfo;
+            const libs = data.libraries;
+            const rawLocation = data.rawLocation || '';
+            
+            const bookFields = [
+                { num: 1, key: 'title', label: '書名' },
+                { num: 2, key: 'catalogNo', label: '館藏編目號碼' },
+                { num: 3, key: 'callNo', label: '索書號' },
+                { num: 4, key: 'author', label: '著者' },
+                { num: 5, key: 'description', label: '著錄' },
+                { num: 6, key: 'pubLoc', label: '出版地' },
+                { num: 7, key: 'publisher', label: '出版者' },
+                { num: 8, key: 'pubYear', label: '出版年份' },
+                { num: 9, key: 'series', label: '叢書名' }
+            ];
+            
+            let bookInfoHtml = `
+                <div class="book-info">
+                    <h2>📖 書目資料</h2>
+                    <div class="info-list">
+            `;
+            
+            bookFields.forEach(field => {
+                const value = book[field.key] || '-';
+                if (value !== '-' || field.key === 'title') {
+                    bookInfoHtml += `
+                        <div class="info-row">
+                            <div class="info-number">${field.num}</div>
+                            <div class="info-label">${field.label}</div>
+                            <div class="info-value">${escapeHtml(value)}</div>
+                        </div>
+                    `;
+                }
+            });
+            
+            bookInfoHtml += '</div></div>';
+            
+            let html = bookInfoHtml;
+            
+            html += `
+                <div class="library-summary">
+                    <span>📚 可選圖書館：${libs.total} 間 (顯示前 ${libs.displayed} 筆)</span>
+                    ${rawLocation ? `<span class="location-badge">位置: ${escapeHtml(rawLocation)}</span>` : '<span class="location-badge">無位置資料</span>'}
+                </div>
+            `;
+            
+            if (libs && libs.list && libs.list.length > 0) {
+                html += `
+                    <div class="libraries-section">
+                        <div class="section-header">
+                            <div>
+                                <span class="section-title">🏛️ 圖書館館藏清單</span>
+                                <span class="badge badge-primary" style="margin-left: 10px;">
+                                    顯示 ${libs.displayed} / ${libs.total} 間
+                                </span>
+                                ${data.fromCache ? '<span class="badge badge-success" style="margin-left: 5px;">快取</span>' : ''}
+                            </div>
+                        </div>
+                `;
+                
+                if (libs.hasMore) {
+                    html += `<div style="margin-bottom: 15px; color: #666; font-size: 13px; background: #fff3cd; padding: 8px 12px; border-radius: 6px;">
+                        ⚠️ 還有 ${libs.total - libs.displayed} 間圖書館未顯示，請在左側「顯示設定」增加數量
+                    </div>`;
+                }
+                
+                html += `<div style="overflow-x: auto;"><table>
+                    <thead>
+                        <tr>
+                            <th>圖書館</th>
+                            <th>索書號</th>
+                            <th>期次</th>
+                            <th>媒體碼</th>
+                            <th>館藏現況</th>
+                            <th>館藏</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+                
+                libs.list.forEach(lib => {
+                    const statusClass = lib.status && lib.status.includes('可供借出') ? 'status-available' : 'status-unavailable';
+                    html += `
+                        <tr>
+                            <td><strong>${escapeHtml(lib.library)}</strong></td>
+                            <td>${escapeHtml(lib.callNumber)}</td>
+                            <td>${escapeHtml(lib.issue) || '-'}</td>
+                            <td>${escapeHtml(lib.mediaCode) || '-'}</td>
+                            <td class="${statusClass}">${escapeHtml(lib.status) || '-'}</td>
+                            <td>${escapeHtml(lib.collection) || '-'}</td>
+                        </tr>
+                    `;
+                });
+                
+                html += '</tbody></table></div></div>';
+            }
+            
+            document.getElementById('results').innerHTML = html;
+        }
+        
+        function clearResults() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('results').innerHTML = `
+                <div class="empty-state">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.3; margin-bottom: 16px;">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <p>請輸入14位數條碼開始查詢</p>
+                </div>
+            `;
+            document.getElementById('statusBar').style.display = 'none';
+        }
+        
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') searchBook();
+        });
+        
+        document.getElementById('singleBookKey')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') document.getElementById('singleLocation').focus();
+        });
+        
+        document.getElementById('singleLocation')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') updateSingleLocation();
+        });
+        
+        // 搜尋輸入框限制14位數字
+        document.getElementById('searchInput')?.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^\d]/g, '').slice(0, 14);
+        });
+        
+        // 新增：單一位置更新輸入框限制14位數字
+        document.getElementById('singleBookKey')?.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^\d]/g, '').slice(0, 14);
+        });
+    </script>
+</body>
+</html>
