@@ -104,6 +104,7 @@
             overflow-y: auto;
             background: #fafafa;
             height: calc(100vh - 60px);
+            position: relative;
         }
         
         /* 功能區塊 */
@@ -177,7 +178,7 @@
             padding: 12px 15px;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
-            font-size: 16px; /* 防止iOS縮放 */
+            font-size: 16px;
             transition: all 0.3s;
             font-family: inherit;
             width: 100%;
@@ -256,7 +257,7 @@
             font-size: 13px;
         }
         
-        /* Manual Select 樣式 */
+        /* Manual Select 樣式 - 桌面端 */
         .search-sidebar h3 {
             font-size: 16px;
             color: #495057;
@@ -402,7 +403,7 @@
             display: block;
         }
         
-        /* 可選圖書館及位置 - 桌面端 */
+        /* 可選圖書館及位置 */
         .library-summary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -431,7 +432,7 @@
             text-align: center;
         }
         
-        /* 書目資料 - 桌面端 */
+        /* 書目資料 */
         .book-info {
             background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
             border-left: 4px solid #ff9800;
@@ -637,6 +638,73 @@
             min-width: 120px;
         }
         
+        /* 單一位置更新日誌 */
+        .log-container {
+            margin-top: 20px;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+            overflow: hidden;
+        }
+        
+        .log-header {
+            background: #f8f9fa;
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            font-weight: 600;
+            color: #495057;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .log-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .log-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        
+        .log-item:last-child {
+            border-bottom: none;
+        }
+        
+        .log-time {
+            color: #6c757d;
+            font-size: 12px;
+            white-space: nowrap;
+            min-width: 60px;
+        }
+        
+        .log-content {
+            flex: 1;
+            word-break: break-word;
+        }
+        
+        .log-item.success {
+            background: #f1f8f4;
+            border-left: 3px solid #28a745;
+        }
+        
+        .log-item.error {
+            background: #fdf2f2;
+            border-left: 3px solid #dc3545;
+        }
+        
+        .empty-log {
+            text-align: center;
+            padding: 30px;
+            color: #adb5bd;
+            font-size: 14px;
+        }
+        
         /* 其他功能頁面樣式 */
         .panel-content {
             padding: 25px;
@@ -695,17 +763,153 @@
             
             .search-main {
                 padding: 20px 15px;
+                padding-bottom: 100px; /* 為浮動按鈕留空間 */
             }
             
+            /* 手機端隱藏右側sidebar，改為浮動按鈕 */
             .search-sidebar {
-                border-left: none;
-                border-top: 2px solid #e9ecef;
-                padding: 15px;
-                background: #f0f2f5;
+                display: none;
             }
             
-            .manual-list {
-                max-height: 300px;
+            /* 手機端浮動按鈕 */
+            .fab-container {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                z-index: 1000;
+            }
+            
+            .fab-button {
+                width: 56px;
+                height: 56px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border: none;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                font-size: 24px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s;
+            }
+            
+            .fab-button:active {
+                transform: scale(0.9);
+            }
+            
+            .fab-badge {
+                position: absolute;
+                top: -5px;
+                right: -5px;
+                background: #dc3545;
+                color: white;
+                font-size: 12px;
+                font-weight: 600;
+                padding: 2px 6px;
+                border-radius: 10px;
+                min-width: 20px;
+                text-align: center;
+            }
+            
+            /* 浮動面板 */
+            .mobile-panel-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 1001;
+            }
+            
+            .mobile-panel-overlay.active {
+                display: block;
+            }
+            
+            .mobile-panel {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: white;
+                border-radius: 20px 20px 0 0;
+                max-height: 80vh;
+                transform: translateY(100%);
+                transition: transform 0.3s ease;
+                z-index: 1002;
+                display: flex;
+                flex-direction: column;
+            }
+            
+            .mobile-panel.active {
+                transform: translateY(0);
+            }
+            
+            .mobile-panel-header {
+                padding: 20px;
+                border-bottom: 1px solid #e0e0e0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background: #f8f9fa;
+                border-radius: 20px 20px 0 0;
+            }
+            
+            .mobile-panel-title {
+                font-size: 18px;
+                font-weight: 600;
+                color: #333;
+            }
+            
+            .mobile-panel-close {
+                background: none;
+                border: none;
+                font-size: 24px;
+                color: #666;
+                padding: 0;
+                width: 36px;
+                height: 36px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .mobile-panel-content {
+                flex: 1;
+                overflow-y: auto;
+                padding: 15px;
+            }
+            
+            .manual-list-mobile {
+                max-height: 50vh;
+                overflow-y: auto;
+                background: white;
+                border: 1px solid #dee2e6;
+                border-radius: 8px;
+                padding: 10px;
+                margin-bottom: 15px;
+            }
+            
+            .manual-item-mobile {
+                padding: 12px;
+                border-bottom: 1px solid #f0f0f0;
+                font-size: 16px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                cursor: pointer;
+                min-height: 48px;
+            }
+            
+            .manual-item-mobile:active {
+                background: #f8f9fa;
+            }
+            
+            .manual-item-mobile:last-child {
+                border-bottom: none;
             }
             
             .block-title {
@@ -762,6 +966,30 @@
             
             .panel-content {
                 padding: 20px 15px;
+                padding-bottom: 40px;
+            }
+            
+            /* 手機端書目資料正常大小，與圖書館清單一致 */
+            .book-info {
+                transform: none;
+                width: 100%;
+                margin-bottom: 15px;
+                padding: 15px;
+            }
+            
+            .info-number {
+                width: 24px;
+                height: 24px;
+                font-size: 12px;
+            }
+            
+            .info-label {
+                font-size: 12px;
+                min-width: 80px;
+            }
+            
+            .info-value {
+                font-size: 14px;
             }
             
             /* 手機端：調整結果區域順序，圖書館資訊在上 */
@@ -783,46 +1011,14 @@
                 padding: 8px 16px;
             }
             
-            /* 2. 書目資料縮小至1/3 */
+            /* 2. 書目資料 */
             .book-info {
                 order: 0;
-                transform: scale(0.33);
-                transform-origin: top left;
-                width: 300%; /* 補償scale導致的寬度減小 */
-                margin-bottom: -65%; /* 減少空白，拉近距离 */
-                margin-left: 0;
-                padding: 10px;
-            }
-            
-            .book-info h2 {
-                font-size: 20px;
-                margin-bottom: 8px;
-                padding-bottom: 6px;
-            }
-            
-            .info-number {
-                width: 24px;
-                height: 24px;
-                font-size: 12px;
-            }
-            
-            .info-label {
-                font-size: 11px;
-                min-width: 80px;
-            }
-            
-            .info-value {
-                font-size: 13px;
             }
             
             /* 3. 圖書館列表在正常流中 */
             .libraries-section {
                 order: 1;
-                margin-top: 10px;
-            }
-            
-            /* 確保表格容器正確顯示 */
-            .table-container {
                 margin-top: 10px;
             }
         }
@@ -842,13 +1038,6 @@
                 font-size: 10px;
             }
             
-            /* 更小的手機上書目資料微調 */
-            .book-info {
-                transform: scale(0.33);
-                width: 300%;
-                margin-bottom: -70%;
-            }
-            
             .library-summary {
                 font-size: 16px;
                 padding: 12px;
@@ -857,6 +1046,10 @@
             .location-badge {
                 font-size: 14px;
                 padding: 6px 12px;
+            }
+            
+            .log-list {
+                max-height: 300px;
             }
         }
         
@@ -919,11 +1112,8 @@
                                 
                                 <div class="search-box">
                                     <input type="text" id="searchInput" placeholder="請輸入14位數條碼..." autocomplete="off" maxlength="14" inputmode="numeric">
-                                    <button class="btn-primary" onclick="searchBook()" id="searchBtn">
+                                    <button class="btn-primary" onclick="searchBook()" id="searchBtn" style="flex: 1;">
                                         查詢
-                                    </button>
-                                    <button class="btn-secondary" onclick="clearResults()">
-                                        清除
                                     </button>
                                 </div>
                                 
@@ -939,10 +1129,46 @@
                                     </div>
                                 </div>
                             </div>
+                            
+                            <!-- 手機端浮動按鈕 -->
+                            <div class="fab-container mobile-only" style="display: none;">
+                                <button class="fab-button" onclick="toggleMobilePanel()">
+                                    📋
+                                    <span class="fab-badge" id="fabBadge">0</span>
+                                </button>
+                            </div>
+                            
+                            <!-- 手機端彈出面板 -->
+                            <div class="mobile-panel-overlay" id="mobilePanelOverlay" onclick="toggleMobilePanel()"></div>
+                            <div class="mobile-panel" id="mobilePanel">
+                                <div class="mobile-panel-header">
+                                    <div class="mobile-panel-title">📋 Manual Select</div>
+                                    <button class="mobile-panel-close" onclick="toggleMobilePanel()">×</button>
+                                </div>
+                                <div class="mobile-panel-content">
+                                    <div class="manual-list-mobile" id="manualListMobile">
+                                        <div class="empty-list">暫無項目</div>
+                                    </div>
+                                    
+                                    <div class="manual-input-group">
+                                        <input type="text" id="newManualItemMobile" placeholder="加入新項目..." onkeypress="if(event.key==='Enter') addManualItemFromMobile()">
+                                        <button class="btn-success btn-sm" onclick="addManualItemFromMobile()">+</button>
+                                    </div>
+                                    
+                                    <div class="manual-actions">
+                                        <button class="btn-danger btn-sm" onclick="clearManualSelect()">清空全部</button>
+                                        <button class="btn-secondary btn-sm" onclick="removeLastManual()">移除最後</button>
+                                    </div>
+                                    
+                                    <button class="btn-info btn-sm export-btn" onclick="exportManualSelect()" style="margin-top: 10px;">
+                                        📥 匯出清單 (CSV)
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                         
-                        <!-- 右側：Manual Select（只在圖書查詢顯示） -->
-                        <div class="search-sidebar">
+                        <!-- 右側：Manual Select（桌面端顯示） -->
+                        <div class="search-sidebar desktop-only">
                             <h3>
                                 📋 Manual Select
                                 <span id="manualCount" style="font-size: 12px; color: #666; font-weight: normal;">(0)</span>
@@ -1004,9 +1230,20 @@
                                 <input type="text" id="singleLocation" placeholder="新位置（C欄）">
                                 <button class="btn-success" onclick="updateSingleLocation()" style="width: 100%;">更新</button>
                             </div>
-                            <div class="helper-text">請輸入14位數字條碼。更新後自動清除條碼欄，位置欄保留供下次使用</div>
+                            <div class="helper-text">請輸入14位數字條碼。按下更新後立即清除輸入欄</div>
                             
                             <div id="singleStatus" class="status-bar" style="margin-top: 15px; display: none;"></div>
+                        </div>
+                        
+                        <!-- 日誌區域 -->
+                        <div class="log-container">
+                            <div class="log-header">
+                                <span>📋 最近更新日誌（最近10筆）</span>
+                                <button class="btn-sm btn-secondary" onclick="clearLogs()" style="padding: 4px 12px; font-size: 12px;">清空日誌</button>
+                            </div>
+                            <div class="log-list" id="logList">
+                                <div class="empty-log">暫無更新記錄</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1049,11 +1286,109 @@
         const API_URL = 'https://script.google.com/macros/s/AKfycbzl-HifsUB1oZqmtQPLjG0fYCrxZQYTiEWTC5UzftyAhKTj_Ns3BpqavhGFjaHMrRAi/exec';
         let currentDisplayLimit = 100;
         let manualSelectData = [];
+        let updateLogs = []; // 儲存單一位置更新日誌
+        const MAX_LOGS = 10;
         let currentPanel = 'search';
+        
+        // 檢查是否為手機端
+        function isMobile() {
+            return window.innerWidth <= 968;
+        }
+        
+        // 顯示/隱藏手機端浮動面板
+        function toggleMobilePanel() {
+            const overlay = document.getElementById('mobilePanelOverlay');
+            const panel = document.getElementById('mobilePanel');
+            
+            if (overlay.classList.contains('active')) {
+                overlay.classList.remove('active');
+                panel.classList.remove('active');
+                document.body.style.overflow = '';
+            } else {
+                overlay.classList.add('active');
+                panel.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                renderManualListMobile();
+            }
+        }
+        
+        // 從手機端添加項目
+        function addManualItemFromMobile() {
+            const input = document.getElementById('newManualItemMobile');
+            const value = input.value.trim();
+            if (!value) return;
+            
+            if (!manualSelectData.includes(value)) {
+                manualSelectData.push(value);
+                renderManualList();
+                renderManualListMobile();
+                input.value = '';
+            }
+            
+            try {
+                apiCall('addToManualSelect', { value: value });
+            } catch (e) {
+                console.error('背景同步失敗:', e);
+            }
+        }
+        
+        // 渲染手機端Manual Select列表
+        function renderManualListMobile() {
+            const listDiv = document.getElementById('manualListMobile');
+            const fabBadge = document.getElementById('fabBadge');
+            
+            fabBadge.textContent = manualSelectData.length;
+            
+            if (manualSelectData.length === 0) {
+                listDiv.innerHTML = '<div class="empty-list">暫無項目<br>在下方輸入添加</div>';
+                return;
+            }
+            
+            let html = '';
+            // 逆序顯示，最新的在上面
+            for (let i = manualSelectData.length - 1; i >= 0; i--) {
+                const item = manualSelectData[i];
+                html += `
+                    <div class="manual-item-mobile" onclick="useManualItemFromMobile('${escapeHtml(item)}')">
+                        <span class="manual-item-text">${escapeHtml(item)}</span>
+                        <span class="manual-item-remove" onclick="event.stopPropagation(); removeManualItem('${escapeHtml(item)}', ${i})">×</span>
+                    </div>
+                `;
+            }
+            listDiv.innerHTML = html;
+        }
+        
+        // 從手機端使用項目
+        function useManualItemFromMobile(value) {
+            document.getElementById('searchInput').value = value;
+            toggleMobilePanel(); // 關閉面板
+            searchBook();
+        }
         
         document.addEventListener('DOMContentLoaded', function() {
             loadManualSelect();
+            updateMobileUI();
+            
+            // 監聽視窗大小變化
+            window.addEventListener('resize', updateMobileUI);
         });
+        
+        function updateMobileUI() {
+            const fabContainer = document.querySelector('.fab-container');
+            const desktopSidebar = document.querySelector('.search-sidebar');
+            
+            if (isMobile()) {
+                fabContainer.style.display = 'block';
+                desktopSidebar.style.display = 'none';
+            } else {
+                fabContainer.style.display = 'none';
+                desktopSidebar.style.display = 'flex';
+                // 關閉手機面板
+                document.getElementById('mobilePanelOverlay').classList.remove('active');
+                document.getElementById('mobilePanel').classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
         
         function switchPanel(panelName) {
             document.querySelectorAll('.function-block').forEach(block => {
@@ -1086,14 +1421,70 @@
             }
         }
         
+        // 添加日誌
+        function addLog(message, type = 'success') {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            
+            updateLogs.unshift({
+                time: timeStr,
+                message: message,
+                type: type
+            });
+            
+            // 只保留最近10筆
+            if (updateLogs.length > MAX_LOGS) {
+                updateLogs = updateLogs.slice(0, MAX_LOGS);
+            }
+            
+            renderLogs();
+        }
+        
+        // 渲染日誌
+        function renderLogs() {
+            const logList = document.getElementById('logList');
+            
+            if (updateLogs.length === 0) {
+                logList.innerHTML = '<div class="empty-log">暫無更新記錄</div>';
+                return;
+            }
+            
+            let html = '';
+            updateLogs.forEach(log => {
+                html += `
+                    <div class="log-item ${log.type}">
+                        <div class="log-time">${log.time}</div>
+                        <div class="log-content">${escapeHtml(log.message)}</div>
+                    </div>
+                `;
+            });
+            
+            logList.innerHTML = html;
+        }
+        
+        // 清空日誌
+        function clearLogs() {
+            if (updateLogs.length === 0) return;
+            if (!confirm('確定清空所有日誌記錄？')) return;
+            
+            updateLogs = [];
+            renderLogs();
+        }
+        
         async function updateSingleLocation() {
             const bookKey = document.getElementById('singleBookKey').value.trim();
             const location = document.getElementById('singleLocation').value.trim();
             
+            // 立即清除輸入欄（不等API回應）
+            document.getElementById('singleBookKey').value = '';
+            document.getElementById('singleLocation').value = '';
+            document.getElementById('singleBookKey').focus();
+            
+            // 驗證
             const barcodeRegex = /^\d{14}$/;
             if (!barcodeRegex.test(bookKey)) {
                 showStatus('single', '必須為14位數條碼', 'error');
-                document.getElementById('singleBookKey').focus();
+                addLog(`❌ ${bookKey || '(空)'}：必須為14位數條碼`, 'error');
                 return;
             }
             
@@ -1106,14 +1497,15 @@
                 });
                 
                 if (data.success) {
-                    showStatus('single', `✅ 更新成功！第 ${data.row} 行：${bookKey} → ${location || '(空)'}`, 'success');
-                    document.getElementById('singleBookKey').value = '';
-                    document.getElementById('singleBookKey').focus();
+                    showStatus('single', `✅ 更新成功！第 ${data.row} 行`, 'success');
+                    addLog(`✅ ${bookKey} → ${location || '(空)'}（第${data.row}行）`, 'success');
                 } else {
                     showStatus('single', '❌ ' + data.error, 'error');
+                    addLog(`❌ ${bookKey}：${data.error}`, 'error');
                 }
             } catch (e) {
                 showStatus('single', '更新失敗：' + e.message, 'error');
+                addLog(`❌ ${bookKey}：${e.message}`, 'error');
             }
         }
         
@@ -1260,6 +1652,7 @@
                 if (data.success) {
                     manualSelectData = data.data || [];
                     renderManualList();
+                    renderManualListMobile();
                 }
             } catch (e) {
                 document.getElementById('manualList').innerHTML = '<div class="empty-list">載入失敗</div>';
@@ -1297,6 +1690,7 @@
             if (!manualSelectData.includes(value)) {
                 manualSelectData.push(value);
                 renderManualList();
+                renderManualListMobile();
                 input.value = '';
             }
             
@@ -1312,6 +1706,7 @@
             
             manualSelectData.splice(index, 1);
             renderManualList();
+            renderManualListMobile();
             
             try {
                 await apiCall('removeFromManualSelect', { value: value });
@@ -1331,6 +1726,7 @@
             
             manualSelectData = [];
             renderManualList();
+            renderManualListMobile();
             
             try {
                 await apiCall('clearManualSelect');
@@ -1421,6 +1817,7 @@
             if (!manualSelectData.includes(value)) {
                 manualSelectData.push(value);
                 renderManualList();
+                renderManualListMobile();
                 
                 try {
                     await apiCall('addToManualSelect', { value: value });
