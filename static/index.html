@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HKPL 圖書查詢系統 - 修正版</title>
+    <title>圖書查詢</title>
     <style>
         * {
             margin: 0;
@@ -45,11 +45,120 @@
             font-size: 14px;
         }
         
-        /* 控制區域 */
-        .control-panel {
+        /* 主布局：左工具欄 + 中內容 + 右Manual Select */
+        .main-wrapper {
+            display: grid;
+            grid-template-columns: 70px 1fr 320px;
+            min-height: 600px;
+        }
+        
+        /* 左側工具欄（需求4） */
+        .left-toolbar {
+            background: #f8f9fa;
+            border-right: 1px solid #e9ecef;
+            padding: 20px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .tool-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            border: none;
+            background: white;
+            color: #667eea;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .tool-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .tool-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .tool-btn::after {
+            content: attr(data-title);
+            position: absolute;
+            left: 60px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 100;
+        }
+        
+        .tool-btn:hover::after {
+            opacity: 1;
+        }
+        
+        /* 功能面板（預設隱藏，點擊顯示） */
+        .function-panel {
+            display: none;
             background: #f8f9fa;
             border-bottom: 1px solid #e9ecef;
             padding: 20px;
+            animation: slideDown 0.3s ease;
+        }
+        
+        .function-panel.active {
+            display: block;
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .panel-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #495057;
+        }
+        
+        .close-panel {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .close-panel:hover {
+            color: #333;
         }
         
         .control-grid {
@@ -162,6 +271,11 @@
             color: white;
         }
         
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        
         .btn-info {
             background: #17a2b8;
             color: white;
@@ -172,20 +286,12 @@
             font-size: 12px;
         }
         
-        /* 主內容區 */
-        .main-layout {
-            display: grid;
-            grid-template-columns: 1fr 320px;
-            gap: 0;
-            min-height: 600px;
-        }
-        
         .content-area {
             padding: 25px;
             overflow-y: auto;
         }
         
-        /* Manual Select 側邊欄 */
+        /* 右側 Manual Select */
         .sidebar {
             background: #f8f9fa;
             border-left: 1px solid #e9ecef;
@@ -301,12 +407,25 @@
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
+            margin-top: 10px;
         }
         
         .search-box input[type="text"] {
             flex: 1;
             padding: 12px 16px;
             font-size: 16px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+        }
+        
+        .search-hint {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            background: #e3f2fd;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
         }
         
         /* 結果顯示 */
@@ -336,14 +455,14 @@
             display: block;
         }
         
-        /* 1) 可選圖書館及位置保持放大3倍 */
+        /* 可選圖書館及位置保持放大3倍 */
         .library-summary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 30px 40px;
             border-radius: 12px;
             margin-bottom: 25px;
-            font-size: 42px; /* 放大3倍 */
+            font-size: 42px;
             font-weight: 700;
             display: flex;
             justify-content: space-between;
@@ -357,13 +476,13 @@
             color: #764ba2;
             padding: 15px 30px;
             border-radius: 50px;
-            font-size: 36px; /* 放大 */
+            font-size: 36px;
             font-weight: 700;
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
             border: 3px solid white;
         }
         
-        /* 1) 書目資料恢復原大小（但保持直排結構） */
+        /* 書目資料原大小直排 */
         .book-info {
             background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
             border-left: 4px solid #ff9800;
@@ -375,23 +494,22 @@
         .book-info h2 {
             color: #e65100;
             margin-bottom: 15px;
-            font-size: 20px; /* 恢復原大小 */
+            font-size: 20px;
             font-weight: 600;
             border-bottom: 2px solid #ff9800;
             padding-bottom: 10px;
         }
         
-        /* 直排列表樣式 - 原大小 */
         .info-list {
             display: flex;
             flex-direction: column;
-            gap: 8px; /* 恢復較小間距 */
+            gap: 8px;
         }
         
         .info-row {
             display: flex;
             align-items: baseline;
-            padding: 8px 0; /* 恢復較小padding */
+            padding: 8px 0;
             border-bottom: 1px solid rgba(255, 152, 0, 0.2);
         }
         
@@ -402,30 +520,30 @@
         .info-number {
             background: #ff9800;
             color: white;
-            width: 24px; /* 恢復較小 */
-            height: 24px; /* 恢復較小 */
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 12px; /* 恢復較小 */
+            font-size: 12px;
             margin-right: 12px;
             flex-shrink: 0;
         }
         
         .info-label {
-            font-size: 11px; /* 恢復原大小 */
+            font-size: 11px;
             color: #e65100;
             font-weight: 700;
-            min-width: 100px; /* 恢復較小 */
+            min-width: 100px;
             margin-right: 10px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
         
         .info-value {
-            font-size: 14px; /* 恢復原大小 */
+            font-size: 14px;
             color: #212121;
             font-weight: 600;
             flex: 1;
@@ -548,22 +666,26 @@
             border: 1px solid #ffeaa7;
         }
         
+        /* 批量更新按鈕組 */
+        .batch-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .batch-actions button {
+            flex: 1;
+        }
+        
         @media (max-width: 968px) {
-            .main-layout {
-                grid-template-columns: 1fr;
+            .main-wrapper {
+                grid-template-columns: 60px 1fr;
             }
             
             .sidebar {
-                border-left: none;
-                border-top: 1px solid #e9ecef;
-                max-height: 400px;
+                display: none; /* 手機版隱藏右側，可改為漢堡選單 */
             }
             
-            .control-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            /* 手機版調整大字 */
             .library-summary {
                 font-size: 24px;
                 padding: 20px;
@@ -575,41 +697,31 @@
             .location-badge {
                 font-size: 20px;
             }
+            
+            .tool-btn::after {
+                display: none; /* 手機版不顯示提示 */
+            }
         }
         
         @media (max-width: 640px) {
+            .main-wrapper {
+                grid-template-columns: 1fr;
+            }
+            
+            .left-toolbar {
+                flex-direction: row;
+                justify-content: center;
+                padding: 10px;
+                border-right: none;
+                border-bottom: 1px solid #e9ecef;
+            }
+            
             .search-box {
                 flex-direction: column;
             }
             
-            .input-group {
-                flex-direction: column;
-            }
-            
-            button {
-                width: 100%;
-            }
-            
-            .manual-actions {
+            .control-grid {
                 grid-template-columns: 1fr;
-            }
-            
-            .info-row {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            
-            .info-number {
-                margin-bottom: 5px;
-            }
-            
-            .info-label {
-                margin-bottom: 3px;
-                font-size: 10px;
-            }
-            
-            .info-value {
-                font-size: 13px;
             }
         }
     </style>
@@ -617,60 +729,91 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📚 HKPL 圖書查詢系統（修正版）</h1>
-            <p>即時查詢 | 位置管理 | Manual Select | 資料匯出</p>
+            <h1>📚 圖書查詢</h1> <!-- 需求3：改標題 -->
+            <p>圖書館藏查詢系統</p>
         </div>
         
-        <!-- 控制面板 -->
-        <div class="control-panel">
+        <!-- 功能面板區（預設隱藏） -->
+        <div id="panel-display" class="function-panel">
+            <div class="panel-header">
+                <div class="panel-title">⚙️ 顯示設定</div>
+                <button class="close-panel" onclick="closePanel()">&times;</button>
+            </div>
             <div class="control-grid">
-                <!-- 顯示數量設定 -->
                 <div class="control-section">
-                    <div class="control-title"><span>1</span> 顯示設定</div>
-                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                        <label style="margin: 0; font-size: 13px; color: #666;">圖書館顯示數量：</label>
+                    <div class="control-title"><span>1</span> 顯示數量設定</div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <label style="font-size: 13px; color: #666;">圖書館顯示數量：</label>
                         <input type="number" id="displayLimit" value="100" min="1" max="500" style="width: 80px;">
                         <button class="btn-secondary btn-sm" onclick="updateDisplayLimit()">套用</button>
                     </div>
                     <div class="helper-text">設定查詢結果顯示的圖書館數量上限（預設100）</div>
                 </div>
-                
-                <!-- 單一位置更新 -->
+            </div>
+        </div>
+        
+        <div id="panel-single" class="function-panel">
+            <div class="panel-header">
+                <div class="panel-title">📝 單一位置更新</div>
+                <button class="close-panel" onclick="closePanel()">&times;</button>
+            </div>
+            <div class="control-grid">
                 <div class="control-section">
-                    <div class="control-title"><span>2</span> 單一位置更新</div>
+                    <div class="control-title"><span>2</span> 更新書目位置</div>
                     <div class="input-group">
                         <input type="text" id="singleBookKey" placeholder="書名或編號（RawData A欄）" style="flex: 1;">
-                        <input type="text" id="singleLocation" placeholder="新位置（C欄）" style="width: 120px;">
+                        <input type="text" id="singleLocation" placeholder="新位置（C欄）" style="width: 150px;">
                         <button class="btn-success btn-sm" onclick="updateSingleLocation()">更新</button>
                     </div>
                     <div class="helper-text">更新後自動清除書名欄，位置欄保留供下次使用</div>
                 </div>
-                
-                <!-- 批量位置更新（需求3：移除預覽鍵，無確認框） -->
+            </div>
+        </div>
+        
+        <div id="panel-batch" class="function-panel">
+            <div class="panel-header">
+                <div class="panel-title">📋 批量位置更新</div>
+                <button class="close-panel" onclick="closePanel()">&times;</button>
+            </div>
+            <div class="control-grid">
                 <div class="control-section">
-                    <div class="control-title"><span>3</span> 批量位置更新</div>
+                    <div class="control-title"><span>3</span> 批量更新</div>
                     <div class="batch-default-location">
                         <label style="font-size: 12px; color: #856404; font-weight: 600;">預設位置（當下方未指定位置時使用）：</label>
                         <input type="text" id="batchDefaultLocation" placeholder="輸入預設位置..." style="width: 100%; margin-top: 5px; border-color: #ffeaa7;">
                     </div>
                     <textarea id="batchData" placeholder="格式：書名,位置 或 僅書名（使用上方預設位置）&#10;每行只取前14個字元&#10;例如：&#10;哈利波特與魔法石,3F-A區&#10;魔戒現身&#10;小王子,2F-C區"></textarea>
-                    <div style="display: flex; gap: 8px; margin-top: 8px;">
-                        <!-- 需求3：直接更新，無預覽鍵，無確認框 -->
-                        <button class="btn-primary" onclick="submitBatchUpdate()" style="width: 100%;">
+                    
+                    <!-- 需求5：加入清空全部按鈕 -->
+                    <div class="batch-actions">
+                        <button class="btn-warning btn-sm" onclick="clearBatchData()">🗑️ 清空全部</button>
+                        <button class="btn-primary" onclick="submitBatchUpdate()" id="batchUpdateBtn">
                             確認批量更新
                         </button>
                     </div>
+                    
                     <div class="helper-text">直接執行更新，無須確認。每行只取前14位字元處理。失敗項目會記錄到 Error 工作表</div>
                 </div>
             </div>
         </div>
         
         <!-- 主內容區 -->
-        <div class="main-layout">
+        <div class="main-wrapper">
+            <!-- 左側工具欄（需求4） -->
+            <div class="left-toolbar">
+                <button class="tool-btn" data-title="顯示設定" onclick="openPanel('display')">⚙️</button>
+                <button class="tool-btn" data-title="單一更新" onclick="openPanel('single')">📝</button>
+                <button class="tool-btn" data-title="批量更新" onclick="openPanel('batch')">📋</button>
+            </div>
+            
+            <!-- 中間內容區 -->
             <div class="content-area">
-                <!-- 搜尋框 -->
+                <div class="search-hint">
+                    💡 請輸入14位數條碼進行查詢（例如：9789861234567）
+                </div>
+                
                 <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="輸入書名或編號查詢圖書館館藏..." autocomplete="off">
+                    <input type="text" id="searchInput" placeholder="請輸入14位數條碼..." autocomplete="off" maxlength="14">
                     <button class="btn-primary" onclick="searchBook()" id="searchBtn" style="padding: 12px 30px;">
                         🔍 查詢
                     </button>
@@ -687,12 +830,12 @@
                             <circle cx="11" cy="11" r="8"></circle>
                             <path d="m21 21-4.35-4.35"></path>
                         </svg>
-                        <p>輸入書名或編號開始查詢</p>
+                        <p>請輸入14位數條碼開始查詢</p>
                     </div>
                 </div>
             </div>
             
-            <!-- 右側 Manual Select 面板 -->
+            <!-- 右側 Manual Select -->
             <div class="sidebar">
                 <h3>
                     📋 Manual Select
@@ -724,10 +867,52 @@
         const API_URL = 'https://script.google.com/macros/s/AKfycbzl-HifsUB1oZqmtQPLjG0fYCrxZQYTiEWTC5UzftyAhKTj_Ns3BpqavhGFjaHMrRAi/exec';
         let currentDisplayLimit = 100;
         let manualSelectData = [];
+        let currentPanel = null;
         
         document.addEventListener('DOMContentLoaded', function() {
             loadManualSelect();
         });
+        
+        // 需求4：面板切換功能
+        function openPanel(panelName) {
+            // 關閉所有面板
+            document.querySelectorAll('.function-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            document.querySelectorAll('.tool-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // 如果點擊的是當前面板，則關閉（toggle功能）
+            if (currentPanel === panelName) {
+                currentPanel = null;
+                return;
+            }
+            
+            // 開啟新面板
+            document.getElementById('panel-' + panelName).classList.add('active');
+            event.target.classList.add('active');
+            currentPanel = panelName;
+        }
+        
+        function closePanel() {
+            document.querySelectorAll('.function-panel').forEach(panel => {
+                panel.classList.remove('active');
+            });
+            document.querySelectorAll('.tool-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            currentPanel = null;
+        }
+        
+        // 需求5：清空批量更新資料
+        function clearBatchData() {
+            if (confirm('確定要清空批量更新輸入框的所有內容嗎？')) {
+                document.getElementById('batchData').value = '';
+                document.getElementById('batchDefaultLocation').value = '';
+                showStatus('已清空輸入內容', 'success');
+            }
+        }
         
         function updateDisplayLimit() {
             const val = parseInt(document.getElementById('displayLimit').value);
@@ -737,7 +922,6 @@
             }
         }
         
-        // 單一位置更新：清除書名，保留位置
         async function updateSingleLocation() {
             const bookKey = document.getElementById('singleBookKey').value.trim();
             const location = document.getElementById('singleLocation').value.trim();
@@ -757,7 +941,6 @@
                 
                 if (data.success) {
                     showStatus(`✅ 更新成功！第 ${data.row} 行：${bookKey} → ${location || '(空)'}`, 'success');
-                    // 清除書名欄，保留位置欄
                     document.getElementById('singleBookKey').value = '';
                     document.getElementById('singleBookKey').focus();
                 } else {
@@ -768,17 +951,17 @@
             }
         }
         
-        // 需求3：批量更新無確認框，優化超時處理
+        // 需求2：優化批量更新，顯示處理狀態
         async function submitBatchUpdate() {
             const rawData = document.getElementById('batchData').value.trim();
             const defaultLoc = document.getElementById('batchDefaultLocation').value.trim();
+            const btn = document.getElementById('batchUpdateBtn');
             
             if (!rawData) {
                 showStatus('請輸入批量資料', 'error');
                 return;
             }
             
-            // 處理資料：按換行分割，只取前14位
             const lines = rawData.split('\n').filter(l => l.trim());
             
             if (lines.length === 0) {
@@ -786,11 +969,7 @@
                 return;
             }
             
-            if (lines.length > 100) {
-                showStatus('資料筆數過多（超過100筆），建議分批處理以避免超時', 'error');
-                return;
-            }
-            
+            // 處理資料：按換行分割，只取前14位
             const processedLines = lines.map(line => {
                 const trimmedLine = line.trim();
                 if (line.includes(',')) {
@@ -810,14 +989,16 @@
             
             const processedData = processedLines.join('\n');
             
-            showStatus(`正在處理 ${lines.length} 筆資料...`, 'info');
+            // 禁用按鈕並顯示處理中（需求2：優化長時間處理體驗）
+            btn.disabled = true;
+            btn.textContent = '⏳ 處理中...';
+            showStatus(`正在處理 ${lines.length} 筆資料，請稍候...`, 'info');
             
             try {
-                // 增加超時時間到60秒（透過setTimeout調整）
                 const result = await apiCallWithTimeout('batchUpdateLocation', { 
                     data: processedData,
                     defaultLocation: ''
-                }, 60000); // 60秒超時
+                }, 60000);
                 
                 if (result.success) {
                     const msg = `✅ 批量更新完成！成功：${result.summary.success} 筆，失敗：${result.summary.failed} 筆`;
@@ -832,10 +1013,12 @@
                 } else {
                     showStatus('批量更新失敗：' + e.message, 'error');
                 }
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '確認批量更新';
             }
         }
         
-        // 優化的API呼叫（支援自定義超時）
         function apiCallWithTimeout(action, params = {}, timeoutMs = 30000) {
             return new Promise((resolve, reject) => {
                 const callbackName = 'cb_' + Date.now();
@@ -875,7 +1058,6 @@
             });
         }
         
-        // 標準API呼叫（30秒）
         function apiCall(action, params = {}) {
             return apiCallWithTimeout(action, params, 30000);
         }
@@ -989,14 +1171,18 @@
             searchBook();
         }
         
+        // 需求1：加入14位純數字驗證
         async function searchBook() {
             const input = document.getElementById('searchInput').value.trim();
             const btn = document.getElementById('searchBtn');
             const resultsDiv = document.getElementById('results');
             
-            if (!input) {
-                showStatus('請輸入搜尋內容', 'error');
-                return;
+            // 驗證：必須為14位純數字
+            const barcodeRegex = /^\d{14}$/;
+            if (!barcodeRegex.test(input)) {
+                showStatus('必須為14位數條碼', 'error');
+                document.getElementById('searchInput').focus();
+                return; // 停止執行，不呼叫GAS
             }
             
             btn.disabled = true;
@@ -1020,8 +1206,8 @@
                 } else if (data.success && !data.found) {
                     resultsDiv.innerHTML = `
                         <div class="empty-state">
-                            <p>找不到「${escapeHtml(input)}」</p>
-                            <p style="font-size: 13px; margin-top: 10px;">請確認書名或編號是否正確</p>
+                            <p>找不到條碼「${escapeHtml(input)}」</p>
+                            <p style="font-size: 13px; margin-top: 10px;">請確認條碼是否正確</p>
                         </div>
                     `;
                     showStatus('查無資料', 'error');
@@ -1051,13 +1237,11 @@
             }
         }
         
-        // 書目資料顯示（恢復原大小，保持直排）
         function displayResults(data) {
             const book = data.bookInfo;
             const libs = data.libraries;
             const rawLocation = data.rawLocation || '';
             
-            // 按指定順序顯示書目資料（原大小）
             const bookFields = [
                 { num: 1, key: 'title', label: '書名' },
                 { num: 2, key: 'catalogNo', label: '館藏編目號碼' },
@@ -1093,7 +1277,6 @@
             
             let html = bookInfoHtml;
             
-            // 可選圖書館及位置保持放大3倍
             html += `
                 <div class="library-summary">
                     <span>📚 可選圖書館：${libs.total} 間 (顯示前 ${libs.displayed} 筆)</span>
@@ -1117,7 +1300,7 @@
                 
                 if (libs.hasMore) {
                     html += `<div style="margin-bottom: 15px; color: #666; font-size: 13px; background: #fff3cd; padding: 8px 12px; border-radius: 6px;">
-                        ⚠️ 還有 ${libs.total - libs.displayed} 間圖書館未顯示，請在上方「顯示設定」增加數量
+                        ⚠️ 還有 ${libs.total - libs.displayed} 間圖書館未顯示，請在左側「顯示設定」增加數量
                     </div>`;
                 }
                 
@@ -1162,7 +1345,7 @@
                         <circle cx="11" cy="11" r="8"></circle>
                         <path d="m21 21-4.35-4.35"></path>
                     </svg>
-                    <p>輸入書名或編號開始查詢</p>
+                    <p>請輸入14位數條碼開始查詢</p>
                 </div>
             `;
             document.getElementById('statusBar').style.display = 'none';
@@ -1200,6 +1383,11 @@
         
         document.getElementById('singleLocation')?.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') updateSingleLocation();
+        });
+        
+        // 輸入時限制只能輸入數字，且最多14位
+        document.getElementById('searchInput')?.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^\d]/g, '').slice(0, 14);
         });
     </script>
 </body>
