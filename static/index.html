@@ -40,10 +40,10 @@
             font-weight: 600;
         }
         
-        /* 主布局：左工具欄 + 中內容 + 右Manual Select */
+        /* 主布局：左工具欄 + 中內容 */
         .main-wrapper {
             display: grid;
-            grid-template-columns: 80px 1fr 320px;
+            grid-template-columns: 80px 1fr;
             min-height: 600px;
         }
         
@@ -97,8 +97,8 @@
         
         /* 中間內容區域 */
         .content-area {
-            padding: 30px;
-            overflow-y: auto;
+            padding: 0;
+            overflow: hidden;
             background: #fafafa;
         }
         
@@ -106,6 +106,7 @@
         .function-block {
             display: none;
             animation: fadeIn 0.3s ease;
+            height: 100%;
         }
         
         .function-block.active {
@@ -115,6 +116,29 @@
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* 圖書查詢專用布局：內容區 + Manual Select */
+        .search-layout {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            height: 100%;
+            max-height: calc(100vh - 120px);
+        }
+        
+        .search-main {
+            padding: 30px;
+            overflow-y: auto;
+        }
+        
+        .search-sidebar {
+            background: #f8f9fa;
+            border-left: 1px solid #e9ecef;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow-y: auto;
         }
         
         .block-title {
@@ -229,17 +253,8 @@
             font-size: 13px;
         }
         
-        /* 右側 Manual Select */
-        .sidebar {
-            background: #f8f9fa;
-            border-left: 1px solid #e9ecef;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-        
-        .sidebar h3 {
+        /* Manual Select 樣式 */
+        .search-sidebar h3 {
             font-size: 16px;
             color: #495057;
             margin-bottom: 15px;
@@ -256,7 +271,7 @@
             border-radius: 8px;
             padding: 10px;
             margin-bottom: 15px;
-            max-height: 500px;
+            max-height: 400px;
         }
         
         .manual-item {
@@ -609,12 +624,22 @@
             flex: 1;
         }
         
+        /* 其他功能頁面樣式 */
+        .panel-content {
+            padding: 30px;
+            max-width: 800px;
+        }
+        
         @media (max-width: 968px) {
             .main-wrapper {
                 grid-template-columns: 70px 1fr;
             }
             
-            .sidebar {
+            .search-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .search-sidebar {
                 display: none;
             }
             
@@ -682,7 +707,7 @@
         
         <!-- 主內容區 -->
         <div class="main-wrapper">
-            <!-- 左側工具欄 - 四個功能按鈕（需求1） -->
+            <!-- 左側工具欄 - 四個功能按鈕 -->
             <div class="left-toolbar">
                 <button class="tool-btn active" data-target="search" onclick="switchPanel('search')" title="圖書查詢">
                     <span>🔍</span>
@@ -707,133 +732,144 @@
                 
                 <!-- 1) 圖書查詢功能區（預設顯示） -->
                 <div id="panel-search" class="function-block active">
-                    <div class="block-title">🔍 圖書查詢</div>
-                    
-                    <div class="control-box">
-                        <div class="search-hint">
-                            💡 請輸入14位數條碼進行查詢（例如：9789861234567）
-                        </div>
-                        
-                        <div class="search-box">
-                            <input type="text" id="searchInput" placeholder="請輸入14位數條碼..." autocomplete="off" maxlength="14">
-                            <button class="btn-primary" onclick="searchBook()" id="searchBtn" style="padding: 15px 35px; font-size: 16px;">
-                                查詢
-                            </button>
-                            <button class="btn-secondary" onclick="clearResults()">
-                                清除
-                            </button>
-                        </div>
-                        
-                        <div id="statusBar" class="status-bar"></div>
-                        
-                        <div id="results">
-                            <div class="empty-state">
-                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.3; margin-bottom: 16px;">
-                                    <circle cx="11" cy="11" r="8"></circle>
-                                    <path d="m21 21-4.35-4.35"></path>
-                                </svg>
-                                <p>請輸入14位數條碼開始查詢</p>
+                    <div class="search-layout">
+                        <!-- 左側：查詢內容 -->
+                        <div class="search-main">
+                            <div class="block-title">🔍 圖書查詢</div>
+                            
+                            <div class="control-box">
+                                <div class="search-hint">
+                                    💡 請輸入14位數條碼進行查詢（例如：9789861234567）
+                                </div>
+                                
+                                <div class="search-box">
+                                    <input type="text" id="searchInput" placeholder="請輸入14位數條碼..." autocomplete="off" maxlength="14">
+                                    <button class="btn-primary" onclick="searchBook()" id="searchBtn" style="padding: 15px 35px; font-size: 16px;">
+                                        查詢
+                                    </button>
+                                    <button class="btn-secondary" onclick="clearResults()">
+                                        清除
+                                    </button>
+                                </div>
+                                
+                                <div id="statusBar" class="status-bar"></div>
+                                
+                                <div id="results">
+                                    <div class="empty-state">
+                                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.3; margin-bottom: 16px;">
+                                            <circle cx="11" cy="11" r="8"></circle>
+                                            <path d="m21 21-4.35-4.35"></path>
+                                        </svg>
+                                        <p>請輸入14位數條碼開始查詢</p>
+                                    </div>
+                                </div>
                             </div>
+                        </div>
+                        
+                        <!-- 右側：Manual Select（只在圖書查詢顯示） -->
+                        <div class="search-sidebar">
+                            <h3>
+                                📋 Manual Select
+                                <span id="manualCount" style="font-size: 12px; color: #666; font-weight: normal;">(0)</span>
+                            </h3>
+                            
+                            <div class="manual-list" id="manualList">
+                                <div class="empty-list">載入中...</div>
+                            </div>
+                            
+                            <div class="manual-input-group">
+                                <input type="text" id="newManualItem" placeholder="加入新項目..." onkeypress="if(event.key==='Enter') addManualItem()">
+                                <button class="btn-success btn-sm" onclick="addManualItem()">+</button>
+                            </div>
+                            
+                            <div class="manual-actions">
+                                <button class="btn-danger btn-sm" onclick="clearManualSelect()">清空全部</button>
+                                <button class="btn-secondary btn-sm" onclick="removeLastManual()">移除最後</button>
+                            </div>
+                            
+                            <button class="btn-info btn-sm export-btn" onclick="exportManualSelect()">
+                                📥 匯出清單 (CSV)
+                            </button>
                         </div>
                     </div>
                 </div>
                 
                 <!-- 2) 顯示設定功能區（預設隱藏） -->
                 <div id="panel-display" class="function-block">
-                    <div class="block-title">⚙️ 顯示設定</div>
-                    
-                    <div class="control-box">
-                        <div class="control-title" style="margin-bottom: 15px; font-size: 16px;">
-                            <span style="background: #667eea; color: white; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 8px;">1</span>
-                            顯示數量設定
+                    <div class="panel-content">
+                        <div class="block-title">⚙️ 顯示設定</div>
+                        
+                        <div class="control-box">
+                            <div class="control-title" style="margin-bottom: 15px; font-size: 16px;">
+                                <span style="background: #667eea; color: white; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 8px;">1</span>
+                                顯示數量設定
+                            </div>
+                            <div class="input-group">
+                                <label style="font-size: 15px; color: #555;">圖書館顯示數量：</label>
+                                <input type="number" id="displayLimit" value="100" min="1" max="500" style="width: 120px; font-size: 16px;">
+                                <button class="btn-secondary" onclick="updateDisplayLimit()">套用設定</button>
+                            </div>
+                            <div class="helper-text">設定查詢結果顯示的圖書館數量上限（預設100筆）</div>
                         </div>
-                        <div class="input-group">
-                            <label style="font-size: 15px; color: #555;">圖書館顯示數量：</label>
-                            <input type="number" id="displayLimit" value="100" min="1" max="500" style="width: 120px; font-size: 16px;">
-                            <button class="btn-secondary" onclick="updateDisplayLimit()">套用設定</button>
-                        </div>
-                        <div class="helper-text">設定查詢結果顯示的圖書館數量上限（預設100筆）</div>
                     </div>
                 </div>
                 
                 <!-- 3) 單一位置更新功能區（預設隱藏） -->
                 <div id="panel-single" class="function-block">
-                    <div class="block-title">📝 單一位置更新</div>
-                    
-                    <div class="control-box">
-                        <div class="control-title" style="margin-bottom: 15px; font-size: 16px;">
-                            <span style="background: #667eea; color: white; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 8px;">2</span>
-                            更新書目位置
-                        </div>
-                        <div class="input-group" style="flex-direction: column; gap: 15px;">
-                            <div style="display: flex; gap: 10px; width: 100%;">
-                                <input type="text" id="singleBookKey" placeholder="14位數條碼（RawData A欄）" style="flex: 1;" maxlength="14">
-                            </div>
-                            <div style="display: flex; gap: 10px; width: 100%;">
-                                <input type="text" id="singleLocation" placeholder="新位置（C欄）" style="flex: 1;">
-                                <button class="btn-success" onclick="updateSingleLocation()" style="min-width: 100px;">更新</button>
-                            </div>
-                        </div>
-                        <div class="helper-text">請輸入14位數字條碼。更新後自動清除條碼欄，位置欄保留供下次使用</div>
+                    <div class="panel-content">
+                        <div class="block-title">📝 單一位置更新</div>
                         
-                        <div id="singleStatus" class="status-bar" style="margin-top: 15px; display: none;"></div>
+                        <div class="control-box">
+                            <div class="control-title" style="margin-bottom: 15px; font-size: 16px;">
+                                <span style="background: #667eea; color: white; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 8px;">2</span>
+                                更新書目位置
+                            </div>
+                            <div class="input-group" style="flex-direction: column; gap: 15px;">
+                                <div style="display: flex; gap: 10px; width: 100%;">
+                                    <input type="text" id="singleBookKey" placeholder="14位數條碼（RawData A欄）" style="flex: 1;" maxlength="14">
+                                </div>
+                                <div style="display: flex; gap: 10px; width: 100%;">
+                                    <input type="text" id="singleLocation" placeholder="新位置（C欄）" style="flex: 1;">
+                                    <button class="btn-success" onclick="updateSingleLocation()" style="min-width: 100px;">更新</button>
+                                </div>
+                            </div>
+                            <div class="helper-text">請輸入14位數字條碼。更新後自動清除條碼欄，位置欄保留供下次使用</div>
+                            
+                            <div id="singleStatus" class="status-bar" style="margin-top: 15px; display: none;"></div>
+                        </div>
                     </div>
                 </div>
                 
                 <!-- 4) 批量位置更新功能區（預設隱藏） -->
                 <div id="panel-batch" class="function-block">
-                    <div class="block-title">📋 批量位置更新</div>
-                    
-                    <div class="control-box">
-                        <div class="control-title" style="margin-bottom: 15px; font-size: 16px;">
-                            <span style="background: #667eea; color: white; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 8px;">3</span>
-                            批量更新書目位置
+                    <div class="panel-content">
+                        <div class="block-title">📋 批量位置更新</div>
+                        
+                        <div class="control-box">
+                            <div class="control-title" style="margin-bottom: 15px; font-size: 16px;">
+                                <span style="background: #667eea; color: white; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 8px;">3</span>
+                                批量更新書目位置
+                            </div>
+                            
+                            <div class="batch-default-location">
+                                <label style="font-size: 14px; color: #856404; font-weight: 600; display: block; margin-bottom: 8px;">預設位置（當下方未指定位置時使用）：</label>
+                                <input type="text" id="batchDefaultLocation" placeholder="輸入預設位置..." style="width: 100%; border-color: #ffeaa7;">
+                            </div>
+                            
+                            <textarea id="batchData" placeholder="格式：條碼,位置 或 僅條碼（使用上方預設位置）&#10;每行只取前14個字元&#10;例如：&#10;9789861234567,3F-A區&#10;9789861234568&#10;9789861234569,2F-C區"></textarea>
+                            
+                            <div class="batch-actions">
+                                <button class="btn-warning" onclick="clearBatchData()">🗑️ 清空全部</button>
+                                <button class="btn-primary" onclick="submitBatchUpdate()" id="batchUpdateBtn">確認批量更新</button>
+                            </div>
+                            
+                            <div class="helper-text">直接執行更新，無須確認。每行只取前14位字元處理。失敗項目會記錄到 Error 工作表</div>
+                            
+                            <div id="batchStatus" class="status-bar" style="margin-top: 15px; display: none;"></div>
                         </div>
-                        
-                        <div class="batch-default-location">
-                            <label style="font-size: 14px; color: #856404; font-weight: 600; display: block; margin-bottom: 8px;">預設位置（當下方未指定位置時使用）：</label>
-                            <input type="text" id="batchDefaultLocation" placeholder="輸入預設位置..." style="width: 100%; border-color: #ffeaa7;">
-                        </div>
-                        
-                        <textarea id="batchData" placeholder="格式：條碼,位置 或 僅條碼（使用上方預設位置）&#10;每行只取前14個字元&#10;例如：&#10;9789861234567,3F-A區&#10;9789861234568&#10;9789861234569,2F-C區"></textarea>
-                        
-                        <div class="batch-actions">
-                            <button class="btn-warning" onclick="clearBatchData()">🗑️ 清空全部</button>
-                            <button class="btn-primary" onclick="submitBatchUpdate()" id="batchUpdateBtn">確認批量更新</button>
-                        </div>
-                        
-                        <div class="helper-text">直接執行更新，無須確認。每行只取前14位字元處理。失敗項目會記錄到 Error 工作表</div>
-                        
-                        <div id="batchStatus" class="status-bar" style="margin-top: 15px; display: none;"></div>
                     </div>
                 </div>
                 
-            </div>
-            
-            <!-- 右側 Manual Select（始終顯示） -->
-            <div class="sidebar">
-                <h3>
-                    📋 Manual Select
-                    <span id="manualCount" style="font-size: 12px; color: #666; font-weight: normal;">(0)</span>
-                </h3>
-                
-                <div class="manual-list" id="manualList">
-                    <div class="empty-list">載入中...</div>
-                </div>
-                
-                <div class="manual-input-group">
-                    <input type="text" id="newManualItem" placeholder="加入新項目..." onkeypress="if(event.key==='Enter') addManualItem()">
-                    <button class="btn-success btn-sm" onclick="addManualItem()">+</button>
-                </div>
-                
-                <div class="manual-actions">
-                    <button class="btn-danger btn-sm" onclick="clearManualSelect()">清空全部</button>
-                    <button class="btn-secondary btn-sm" onclick="removeLastManual()">移除最後</button>
-                </div>
-                
-                <button class="btn-info btn-sm export-btn" onclick="exportManualSelect()">
-                    📥 匯出清單 (CSV)
-                </button>
             </div>
         </div>
     </div>
@@ -842,38 +878,29 @@
         const API_URL = 'https://script.google.com/macros/s/AKfycbzl-HifsUB1oZqmtQPLjG0fYCrxZQYTiEWTC5UzftyAhKTj_Ns3BpqavhGFjaHMrRAi/exec';
         let currentDisplayLimit = 100;
         let manualSelectData = [];
-        let currentPanel = 'search'; // 預設顯示圖書查詢
+        let currentPanel = 'search';
         
         document.addEventListener('DOMContentLoaded', function() {
             loadManualSelect();
         });
         
-        // 需求1：切換功能面板，獨立顯示
         function switchPanel(panelName) {
-            // 隱藏所有功能區塊
             document.querySelectorAll('.function-block').forEach(block => {
                 block.classList.remove('active');
             });
             
-            // 移除所有按鈕的active狀態
             document.querySelectorAll('.tool-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
             
-            // 顯示選中的功能區塊
             document.getElementById('panel-' + panelName).classList.add('active');
-            
-            // 高亮選中的按鈕
             document.querySelector(`.tool-btn[data-target="${panelName}"]`).classList.add('active');
             
             currentPanel = panelName;
             
-            // 如果是搜尋面板，自動聚焦輸入框
             if (panelName === 'search') {
                 document.getElementById('searchInput')?.focus();
-            }
-            // 如果是單一位置更新面板，自動聚焦輸入框
-            if (panelName === 'single') {
+            } else if (panelName === 'single') {
                 document.getElementById('singleBookKey')?.focus();
             }
         }
@@ -890,7 +917,6 @@
             const bookKey = document.getElementById('singleBookKey').value.trim();
             const location = document.getElementById('singleLocation').value.trim();
             
-            // 驗證14位純數字
             const barcodeRegex = /^\d{14}$/;
             if (!barcodeRegex.test(bookKey)) {
                 showStatus('single', '必須為14位數條碼', 'error');
@@ -983,14 +1009,12 @@
             }
         }
         
-        // 修改：直接清空，無需確認
         function clearBatchData() {
             document.getElementById('batchData').value = '';
             document.getElementById('batchDefaultLocation').value = '';
             showStatus('batch', '已清空輸入內容', 'success');
         }
         
-        // 根據面板顯示狀態訊息
         function showStatus(panel, message, type) {
             let statusId = 'statusBar';
             if (panel === 'single') statusId = 'singleStatus';
@@ -1158,8 +1182,6 @@
         }
         
         function useManualItem(value) {
-            // 切換到圖書查詢面板並帶入值
-            switchPanel('search');
             document.getElementById('searchInput').value = value;
             searchBook();
         }
@@ -1169,7 +1191,6 @@
             const btn = document.getElementById('searchBtn');
             const resultsDiv = document.getElementById('results');
             
-            // 14位純數字驗證
             const barcodeRegex = /^\d{14}$/;
             if (!barcodeRegex.test(input)) {
                 showStatus('search', '必須為14位數條碼', 'error');
@@ -1362,12 +1383,10 @@
             if (e.key === 'Enter') updateSingleLocation();
         });
         
-        // 搜尋輸入框限制14位數字
         document.getElementById('searchInput')?.addEventListener('input', function(e) {
             this.value = this.value.replace(/[^\d]/g, '').slice(0, 14);
         });
         
-        // 新增：單一位置更新輸入框限制14位數字
         document.getElementById('singleBookKey')?.addEventListener('input', function(e) {
             this.value = this.value.replace(/[^\d]/g, '').slice(0, 14);
         });
