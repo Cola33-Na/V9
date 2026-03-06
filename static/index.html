@@ -1721,6 +1721,7 @@
         }
         
         async function removeManualItem(value, index) {
+            // 個別項目移除仍保留確認（點擊 × 時）
             if (!confirm('確定移除「' + value + '」？')) return;
             
             manualSelectData.splice(index, 1);
@@ -1734,15 +1735,28 @@
             }
         }
         
+        // 修改：移除最後一項不需確認
         async function removeLastManual() {
             if (manualSelectData.length === 0) return;
-            const lastItem = manualSelectData[manualSelectData.length - 1];
-            await removeManualItem(lastItem, manualSelectData.length - 1);
+            
+            const lastIndex = manualSelectData.length - 1;
+            const lastItem = manualSelectData[lastIndex];
+            
+            // 直接移除，不確認
+            manualSelectData.splice(lastIndex, 1);
+            renderManualList();
+            renderManualListMobile();
+            
+            try {
+                await apiCall('removeFromManualSelect', { value: lastItem });
+            } catch (e) {
+                console.error('背景同步失敗:', e);
+            }
         }
         
+        // 修改：清空全部不需確認
         async function clearManualSelect() {
-            if (!confirm('確定清空全部 Manual Select 項目？')) return;
-            
+            // 直接清空，不確認
             manualSelectData = [];
             renderManualList();
             renderManualListMobile();
