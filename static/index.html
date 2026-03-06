@@ -287,7 +287,7 @@
             align-items: center;
             cursor: pointer;
             transition: all 0.2s;
-            min-height: 44px; /* 觸控友善高度 */
+            min-height: 44px;
         }
         
         .manual-item:hover, .manual-item:active {
@@ -402,7 +402,7 @@
             display: block;
         }
         
-        /* 可選圖書館及位置 */
+        /* 可選圖書館及位置 - 桌面端 */
         .library-summary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -431,7 +431,7 @@
             text-align: center;
         }
         
-        /* 書目資料 */
+        /* 書目資料 - 桌面端 */
         .book-info {
             background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
             border-left: 4px solid #ff9800;
@@ -708,16 +708,6 @@
                 max-height: 300px;
             }
             
-            .library-summary {
-                font-size: 18px;
-                padding: 15px;
-            }
-            
-            .location-badge {
-                font-size: 16px;
-                padding: 8px 16px;
-            }
-            
             .block-title {
                 font-size: 18px;
                 margin-bottom: 15px;
@@ -733,7 +723,7 @@
             
             .search-box input[type="text"] {
                 width: 100%;
-                font-size: 16px; /* 防止iOS縮放 */
+                font-size: 16px;
             }
             
             .search-box button {
@@ -773,6 +763,68 @@
             .panel-content {
                 padding: 20px 15px;
             }
+            
+            /* 手機端：調整結果區域順序，圖書館資訊在上 */
+            #results {
+                display: flex;
+                flex-direction: column;
+            }
+            
+            /* 1. 可選圖書館和位置移到最上面 */
+            .library-summary {
+                order: -1;
+                margin-bottom: 15px;
+                font-size: 18px;
+                padding: 15px;
+            }
+            
+            .location-badge {
+                font-size: 16px;
+                padding: 8px 16px;
+            }
+            
+            /* 2. 書目資料縮小至1/3 */
+            .book-info {
+                order: 0;
+                transform: scale(0.33);
+                transform-origin: top left;
+                width: 300%; /* 補償scale導致的寬度減小 */
+                margin-bottom: -65%; /* 減少空白，拉近距离 */
+                margin-left: 0;
+                padding: 10px;
+            }
+            
+            .book-info h2 {
+                font-size: 20px;
+                margin-bottom: 8px;
+                padding-bottom: 6px;
+            }
+            
+            .info-number {
+                width: 24px;
+                height: 24px;
+                font-size: 12px;
+            }
+            
+            .info-label {
+                font-size: 11px;
+                min-width: 80px;
+            }
+            
+            .info-value {
+                font-size: 13px;
+            }
+            
+            /* 3. 圖書館列表在正常流中 */
+            .libraries-section {
+                order: 1;
+                margin-top: 10px;
+            }
+            
+            /* 確保表格容器正確顯示 */
+            .table-container {
+                margin-top: 10px;
+            }
         }
         
         @media (max-width: 480px) {
@@ -790,23 +842,21 @@
                 font-size: 10px;
             }
             
-            .info-row {
-                flex-direction: column;
-                gap: 4px;
+            /* 更小的手機上書目資料微調 */
+            .book-info {
+                transform: scale(0.33);
+                width: 300%;
+                margin-bottom: -70%;
             }
             
-            .info-label {
-                min-width: auto;
-                font-size: 11px;
+            .library-summary {
+                font-size: 16px;
+                padding: 12px;
             }
             
-            .info-value {
+            .location-badge {
                 font-size: 14px;
-                padding-left: 32px; /* 對齊數字圓圈 */
-            }
-            
-            .manual-actions {
-                grid-template-columns: 1fr;
+                padding: 6px 12px;
             }
         }
         
@@ -819,7 +869,7 @@
         /* 改善觸控體驗 */
         @media (hover: none) {
             .manual-item-remove {
-                opacity: 1; /* 手機上始終顯示刪除按鈕 */
+                opacity: 1;
             }
         }
     </style>
@@ -1019,7 +1069,6 @@
             
             currentPanel = panelName;
             
-            // 滾動到頂部
             document.querySelector('.content-area').scrollTop = 0;
             
             if (panelName === 'search') {
@@ -1149,7 +1198,6 @@
             bar.textContent = message;
             bar.style.display = 'block';
             
-            // 手機端自動滾動到訊息位置
             if (window.innerWidth <= 968) {
                 bar.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
@@ -1313,7 +1361,6 @@
         function useManualItem(value) {
             document.getElementById('searchInput').value = value;
             searchBook();
-            // 手機端點擊後滾動到頂部
             if (window.innerWidth <= 968) {
                 document.querySelector('.search-main').scrollIntoView({ behavior: 'smooth' });
             }
@@ -1482,7 +1529,6 @@
             
             document.getElementById('results').innerHTML = html;
             
-            // 手機端查詢後滾動到結果區域
             if (window.innerWidth <= 968) {
                 setTimeout(() => {
                     document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1512,7 +1558,6 @@
             return div.innerHTML;
         }
         
-        // 事件監聽
         document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') searchBook();
         });
