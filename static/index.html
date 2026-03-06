@@ -668,7 +668,7 @@
         }
         
         .log-list {
-            max-height: 400px;
+            max-height: 600px;
             overflow-y: auto;
         }
         
@@ -1062,7 +1062,7 @@
             }
             
             .log-list {
-                max-height: 300px;
+                max-height: 400px;
             }
         }
         
@@ -1251,7 +1251,7 @@
                         <!-- 日誌區域 -->
                         <div class="log-container">
                             <div class="log-header">
-                                <span>📋 最近更新日誌（最近10筆）</span>
+                                <span>📋 最近更新日誌（最近50筆）</span>
                                 <button class="btn-sm btn-secondary" onclick="clearLogs()" style="padding: 4px 12px; font-size: 12px;">清空日誌</button>
                             </div>
                             <div class="log-list" id="logList">
@@ -1300,7 +1300,7 @@
         let currentDisplayLimit = 100;
         let manualSelectData = [];
         let updateLogs = []; // 儲存單一位置更新日誌
-        const MAX_LOGS = 10;
+        const MAX_LOGS = 50; // 修改為50個
         let currentPanel = 'search';
         
         // 檢查是否為手機端
@@ -1436,7 +1436,7 @@
                 type: type
             });
             
-            // 只保留最近10筆
+            // 只保留最近50筆
             if (updateLogs.length > MAX_LOGS) {
                 updateLogs = updateLogs.slice(0, MAX_LOGS);
             }
@@ -1466,11 +1466,8 @@
             logList.innerHTML = html;
         }
         
-        // 清空日誌
+        // 清空日誌（不用確認）
         function clearLogs() {
-            if (updateLogs.length === 0) return;
-            if (!confirm('確定清空所有日誌記錄？')) return;
-            
             updateLogs = [];
             renderLogs();
         }
@@ -1479,20 +1476,24 @@
             const bookKey = document.getElementById('singleBookKey').value.trim();
             const location = document.getElementById('singleLocation').value.trim();
             
-            // 立即清除條碼欄，保留位置欄（保留值功能）
-            document.getElementById('singleBookKey').value = '';
-            document.getElementById('singleBookKey').focus();
-            // 注意：不清除 singleLocation，保留供下次使用
-            
-            // 驗證
+            // 驗證條碼
             const barcodeRegex = /^\d{14}$/;
             if (!barcodeRegex.test(bookKey)) {
-                showStatus('single', '必須為14位數條碼', 'error');
                 addLog(`❌ ${bookKey || '(空)'}：必須為14位數條碼`, 'error');
+                document.getElementById('singleBookKey').focus();
                 return;
             }
             
-            showStatus('single', '更新中...', 'info');
+            // 驗證位置不能為空
+            if (!location) {
+                addLog(`❌ ${bookKey}：位置不能為空值`, 'error');
+                document.getElementById('singleLocation').focus();
+                return;
+            }
+            
+            // 立即清除條碼欄，保留位置欄（保留值功能）
+            document.getElementById('singleBookKey').value = '';
+            document.getElementById('singleBookKey').focus();
             
             try {
                 const data = await apiCall('updateSingleLocation', {
@@ -1501,14 +1502,11 @@
                 });
                 
                 if (data.success) {
-                    showStatus('single', `✅ 更新成功！第 ${data.row} 行`, 'success');
-                    addLog(`✅ ${bookKey} → ${location || '(空)'}（第${data.row}行）`, 'success');
+                    addLog(`✅ ${bookKey} → ${location}（第${data.row}行）`, 'success');
                 } else {
-                    showStatus('single', '❌ ' + data.error, 'error');
                     addLog(`❌ ${bookKey}：${data.error}`, 'error');
                 }
             } catch (e) {
-                showStatus('single', '更新失敗：' + e.message, 'error');
                 addLog(`❌ ${bookKey}：${e.message}`, 'error');
             }
         }
@@ -1520,6 +1518,13 @@
             
             if (!rawData) {
                 showStatus('batch', '請輸入批量資料', 'error');
+                return;
+            }
+            
+            // 驗證預設位置不能為空
+            if (!defaultLoc) {
+                showStatus('batch', '❌ 位置不能為空值', 'error');
+                document.getElementById('batchDefaultLocation').focus();
                 return;
             }
             
@@ -1585,9 +1590,11 @@
         }
         
         function showStatus(panel, message, type) {
+            // 單一位置更新不使用showStatus，由日誌顯示
+            if (panel === 'single') return;
+            
             let statusId = 'statusBar';
-            if (panel === 'single') statusId = 'singleStatus';
-            else if (panel === 'batch') statusId = 'batchStatus';
+            if (panel === 'batch') statusId = 'batchStatus';
             
             const bar = document.getElementById(statusId);
             bar.className = 'status-bar ' + type;
