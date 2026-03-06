@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HKPL 圖書查詢系統 - API版（優化版）</title>
+    <title>HKPL 圖書查詢系統 - 優化版</title>
     <style>
         * {
             margin: 0;
@@ -336,69 +336,98 @@
             display: block;
         }
         
+        /* 1) 放大3倍的可選圖書館及位置資訊 */
+        .library-summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 40px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            font-size: 42px; /* 原14px的3倍 */
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+            line-height: 1.4;
+        }
+        
+        .location-badge {
+            background: rgba(255,255,255,0.95);
+            color: #764ba2;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 36px; /* 放大 */
+            font-weight: 700;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            border: 3px solid white;
+        }
+        
+        /* 2) 書目資料直排顯示 */
         .book-info {
             background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
-            border-left: 4px solid #ff9800;
-            padding: 20px;
+            border-left: 6px solid #ff9800;
+            padding: 30px;
             margin-bottom: 25px;
-            border-radius: 0 10px 10px 0;
+            border-radius: 0 12px 12px 0;
         }
         
         .book-info h2 {
             color: #e65100;
-            margin-bottom: 15px;
-            font-size: 20px;
-            font-weight: 600;
+            margin-bottom: 25px;
+            font-size: 28px;
+            font-weight: 700;
+            border-bottom: 3px solid #ff9800;
+            padding-bottom: 15px;
         }
         
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 12px;
-        }
-        
-        .info-item {
+        /* 直排列表樣式 */
+        .info-list {
             display: flex;
             flex-direction: column;
-            background: rgba(255,255,255,0.6);
-            padding: 10px;
-            border-radius: 6px;
+            gap: 15px;
+        }
+        
+        .info-row {
+            display: flex;
+            align-items: baseline;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 152, 0, 0.2);
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .info-number {
+            background: #ff9800;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            margin-right: 15px;
+            flex-shrink: 0;
         }
         
         .info-label {
-            font-size: 11px;
-            color: #757575;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
+            font-size: 16px;
+            color: #e65100;
+            font-weight: 700;
+            min-width: 120px;
+            margin-right: 15px;
         }
         
         .info-value {
-            font-size: 14px;
+            font-size: 18px;
             color: #212121;
             font-weight: 600;
-        }
-        
-        .library-summary {
-            background: #e3f2fd;
-            padding: 10px 15px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            font-size: 14px;
-            color: #1976d2;
-            font-weight: 600;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .location-badge {
-            background: #fff;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            color: #555;
-            border: 1px solid #ddd;
+            flex: 1;
+            word-break: break-word;
         }
         
         /* 表格 */
@@ -509,25 +538,9 @@
             line-height: 1.4;
         }
         
-        .batch-preview {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 6px;
-            padding: 10px;
-            margin-top: 10px;
-            font-size: 12px;
-            max-height: 150px;
-            overflow-y: auto;
-            display: none;
-        }
-        
-        .batch-preview.show {
-            display: block;
-        }
-        
         .batch-default-location {
             margin-bottom: 10px;
-            padding: 8px;
+            padding: 10px;
             background: #fff3cd;
             border-radius: 6px;
             border: 1px solid #ffeaa7;
@@ -547,6 +560,19 @@
             .control-grid {
                 grid-template-columns: 1fr;
             }
+            
+            /* 手機版調整大字 */
+            .library-summary {
+                font-size: 24px;
+                padding: 20px;
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .location-badge {
+                font-size: 20px;
+            }
         }
         
         @media (max-width: 640px) {
@@ -565,13 +591,26 @@
             .manual-actions {
                 grid-template-columns: 1fr;
             }
+            
+            .info-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .info-number {
+                margin-bottom: 8px;
+            }
+            
+            .info-label {
+                margin-bottom: 5px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>📚 HKPL 圖書查詢系統（API優化版）</h1>
+            <h1>📚 HKPL 圖書查詢系統（優化版）</h1>
             <p>即時查詢 | 位置管理 | Manual Select | 資料匯出</p>
         </div>
         
@@ -589,7 +628,7 @@
                     <div class="helper-text">設定查詢結果顯示的圖書館數量上限（預設100）</div>
                 </div>
                 
-                <!-- 2.2 單一輸入書目位置 -->
+                <!-- 2.2 單一位置更新（需求4：更新後清除書名，保留位置） -->
                 <div class="control-section">
                     <div class="control-title"><span>2</span> 單一位置更新</div>
                     <div class="input-group">
@@ -597,23 +636,24 @@
                         <input type="text" id="singleLocation" placeholder="新位置（C欄）" style="width: 120px;">
                         <button class="btn-success btn-sm" onclick="updateSingleLocation()">更新</button>
                     </div>
-                    <div class="helper-text">更新 RawData 工作表中指定書目的位置（C欄），輸入保留不自動清除</div>
+                    <div class="helper-text">更新後自動清除書名欄，位置欄保留供下次使用</div>
                 </div>
                 
-                <!-- 2.3 批量輸入書目位置（加入預設位置欄） -->
+                <!-- 2.3 批量輸入書目位置（需求5：刪除預覽鍵，需求6：處理邏輯修改） -->
                 <div class="control-section">
                     <div class="control-title"><span>3</span> 批量位置更新</div>
                     <div class="batch-default-location">
                         <label style="font-size: 12px; color: #856404; font-weight: 600;">預設位置（當下方未指定位置時使用）：</label>
                         <input type="text" id="batchDefaultLocation" placeholder="輸入預設位置..." style="width: 100%; margin-top: 5px; border-color: #ffeaa7;">
                     </div>
-                    <textarea id="batchData" placeholder="格式：書名,位置 或 僅書名（使用上方預設位置）&#10;例如：&#10;哈利波特,3F-A區&#10;魔戒&#10;小王子,2F-C區"></textarea>
-                    <div class="batch-preview" id="batchPreview"></div>
+                    <textarea id="batchData" placeholder="格式：書名,位置 或 僅書名（使用上方預設位置）&#10;每行只取前14個字元&#10;例如：&#10;哈利波特與魔法石,3F-A區&#10;魔戒現身&#10;小王子,2F-C區"></textarea>
                     <div style="display: flex; gap: 8px; margin-top: 8px;">
-                        <button class="btn-success btn-sm" onclick="previewBatch()">預覽</button>
-                        <button class="btn-primary btn-sm" onclick="submitBatchUpdate()">確認批量更新</button>
+                        <!-- 需求5：刪除預覽鍵 -->
+                        <button class="btn-primary" onclick="submitBatchUpdate()" style="width: 100%;">
+                            確認批量更新
+                        </button>
                     </div>
-                    <div class="helper-text">批量更新多筆書目位置。若行內無位置，將使用「預設位置」。失敗項目會記錄到 AddNewAddressErr 工作表</div>
+                    <div class="helper-text">每行只取前14位字元處理。失敗項目會記錄到 AddNewAddressErr 工作表</div>
                 </div>
             </div>
         </div>
@@ -645,7 +685,7 @@
                 </div>
             </div>
             
-            <!-- 右側 Manual Select 面板（優化版） -->
+            <!-- 右側 Manual Select 面板 -->
             <div class="sidebar">
                 <h3>
                     📋 Manual Select
@@ -666,7 +706,6 @@
                     <button class="btn-secondary btn-sm" onclick="removeLastManual()">移除最後</button>
                 </div>
                 
-                <!-- 匯出功能 -->
                 <button class="btn-info btn-sm export-btn" onclick="exportManualSelect()">
                     📥 匯出清單 (CSV)
                 </button>
@@ -675,19 +714,14 @@
     </div>
 
     <script>
-        // ================= 設定 =================
         const API_URL = 'https://script.google.com/macros/s/AKfycbzl-HifsUB1oZqmtQPLjG0fYCrxZQYTiEWTC5UzftyAhKTj_Ns3BpqavhGFjaHMrRAi/exec';
         let currentDisplayLimit = 100;
-        let manualSelectData = []; // 本地快取，加速顯示
+        let manualSelectData = [];
         
-        // ================= 初始化 =================
         document.addEventListener('DOMContentLoaded', function() {
             loadManualSelect();
-            document.getElementById('batchData').addEventListener('input', previewBatch);
-            document.getElementById('batchDefaultLocation').addEventListener('input', previewBatch);
         });
         
-        // ================= 2.1 顯示數量設定 =================
         function updateDisplayLimit() {
             const val = parseInt(document.getElementById('displayLimit').value);
             if (val && val > 0) {
@@ -696,7 +730,7 @@
             }
         }
         
-        // ================= 2.2 單一位置更新（不清除輸入） =================
+        // 需求4：單一位置更新，更新後清除書名欄，保留位置欄
         async function updateSingleLocation() {
             const bookKey = document.getElementById('singleBookKey').value.trim();
             const location = document.getElementById('singleLocation').value.trim();
@@ -716,7 +750,10 @@
                 
                 if (data.success) {
                     showStatus(`✅ 更新成功！第 ${data.row} 行：${bookKey} → ${location || '(空)'}`, 'success');
-                    // 不清除輸入欄位，保留以供連續輸入
+                    // 需求4：清除書名欄，保留位置欄
+                    document.getElementById('singleBookKey').value = '';
+                    // document.getElementById('singleLocation').value = ''; // 不執行這行，保留位置
+                    document.getElementById('singleBookKey').focus(); // 自動聚焦回書名欄方便連續輸入
                 } else {
                     showStatus('❌ ' + data.error, 'error');
                 }
@@ -725,66 +762,58 @@
             }
         }
         
-        // ================= 2.3 批量位置更新（支援預設位置） =================
-        function previewBatch() {
-            const data = document.getElementById('batchData').value.trim();
-            const defaultLoc = document.getElementById('batchDefaultLocation').value.trim();
-            const preview = document.getElementById('batchPreview');
-            
-            if (!data) {
-                preview.classList.remove('show');
-                return;
-            }
-            
-            const lines = data.split('\n').filter(l => l.trim());
-            let html = `<strong>預覽 (${lines.length} 筆)：</strong><br>`;
-            
-            lines.slice(0, 5).forEach(line => {
-                const parts = line.split(/[,\t]/);
-                const book = parts[0].trim();
-                const loc = (parts.length >= 2 && parts[1].trim()) ? parts[1].trim() : (defaultLoc || '<span style="color:#dc3545">無位置</span>');
-                
-                if (book) {
-                    html += `• ${book} → ${loc}<br>`;
-                }
-            });
-            
-            if (lines.length > 5) {
-                html += `...還有 ${lines.length - 5} 筆`;
-            }
-            
-            preview.innerHTML = html;
-            preview.classList.add('show');
-        }
-        
+        // 需求6：批量位置更新功能修改
         async function submitBatchUpdate() {
-            const data = document.getElementById('batchData').value.trim();
+            const rawData = document.getElementById('batchData').value.trim();
             const defaultLoc = document.getElementById('batchDefaultLocation').value.trim();
             
-            if (!data) {
+            if (!rawData) {
                 showStatus('請輸入批量資料', 'error');
                 return;
             }
             
-            if (!confirm('確定要批量更新位置嗎？此操作將直接修改 RawData 工作表。\n\n預設位置：' + (defaultLoc || '無'))) {
+            // 需求6.1：按換行分割，只取前14位字串
+            const lines = rawData.split('\n').filter(l => l.trim());
+            const processedLines = lines.map(line => {
+                // 如果有逗號，只取逗號前14位，否則整行取前14位
+                if (line.includes(',')) {
+                    const parts = line.split(',');
+                    const key = parts[0].trim().substring(0, 14);
+                    const loc = parts[1] ? parts[1].trim() : defaultLoc;
+                    return key + (loc ? ',' + loc : '');
+                } else if (line.includes('\t')) {
+                    const parts = line.split('\t');
+                    const key = parts[0].trim().substring(0, 14);
+                    const loc = parts[1] ? parts[1].trim() : defaultLoc;
+                    return key + (loc ? ',' + loc : '');
+                } else {
+                    // 只有書名，取前14位
+                    return line.trim().substring(0, 14) + (defaultLoc ? ',' + defaultLoc : '');
+                }
+            });
+            
+            const processedData = processedLines.join('\n');
+            
+            if (!confirm(`確定要批量更新位置嗎？\n\n處理筆數：${lines.length} 筆\n（每行已截斷至14字元）\n預設位置：${defaultLoc || '無'}`)) {
                 return;
             }
             
             showStatus('批量更新中，請稍候...', 'info');
             
             try {
+                // 需求6.2：執行batchUpdateLocation
                 const result = await apiCall('batchUpdateLocation', { 
-                    data: data,
-                    defaultLocation: defaultLoc
+                    data: processedData,
+                    defaultLocation: '' // 已在前端處理，此處傳空
                 });
                 
                 if (result.success) {
-                    let msg = `✅ 批量更新完成！成功：${result.summary.success} 筆`;
-                    if (result.summary.failed > 0) {
-                        msg += `，失敗：${result.summary.failed} 筆（已記錄到 Error 工作表）`;
-                    }
+                    // 需求6.3：日誌欄回傳成功及失敗的數量
+                    const msg = `✅ 批量更新完成！成功：${result.summary.success} 筆，失敗：${result.summary.failed} 筆`;
                     showStatus(msg, result.summary.failed > 0 ? 'info' : 'success');
-                    // 不清除輸入，保留以供確認或重試
+                    
+                    // 清空輸入框
+                    document.getElementById('batchData').value = '';
                 } else {
                     showStatus('❌ ' + result.error, 'error');
                 }
@@ -793,7 +822,6 @@
             }
         }
         
-        // ================= Manual Select 功能（優化加速版） =================
         async function loadManualSelect() {
             try {
                 const data = await apiCall('getManualSelect');
@@ -806,7 +834,6 @@
             }
         }
         
-        // 本地渲染，無延遲
         function renderManualList() {
             const listDiv = document.getElementById('manualList');
             const countSpan = document.getElementById('manualCount');
@@ -835,14 +862,12 @@
             const value = input.value.trim();
             if (!value) return;
             
-            // 立即本地更新（加速）
             if (!manualSelectData.includes(value)) {
                 manualSelectData.push(value);
                 renderManualList();
                 input.value = '';
             }
             
-            // 背景同步到伺服器
             try {
                 await apiCall('addToManualSelect', { value: value });
             } catch (e) {
@@ -853,11 +878,9 @@
         async function removeManualItem(value, index) {
             if (!confirm('確定移除「' + value + '」？')) return;
             
-            // 立即本地更新（加速）
             manualSelectData.splice(index, 1);
             renderManualList();
             
-            // 背景同步到伺服器
             try {
                 await apiCall('removeFromManualSelect', { value: value });
             } catch (e) {
@@ -884,7 +907,6 @@
             }
         }
         
-        // ================= 匯出功能 =================
         function exportManualSelect() {
             if (manualSelectData.length === 0) {
                 alert('沒有可匯出的資料');
@@ -909,7 +931,6 @@
             searchBook();
         }
         
-        // ================= 查詢功能（顯示可選圖書館及位置） =================
         async function searchBook() {
             const input = document.getElementById('searchInput').value.trim();
             const btn = document.getElementById('searchBtn');
@@ -935,7 +956,6 @@
                     displayResults(data);
                     showStatus(`✅ 查詢成功（${data.elapsedSeconds?.toFixed(2) || '?'}s）`, 'success');
                     
-                    // 查詢成功後添加到 Manual Select（背景執行，不阻擋）
                     addToManualSelectBackground(input);
                     document.getElementById('searchInput').value = '';
                     
@@ -960,7 +980,6 @@
             }
         }
         
-        // 背景添加到 Manual Select（不等待，不阻擋UI）
         async function addToManualSelectBackground(value) {
             if (!manualSelectData.includes(value)) {
                 manualSelectData.push(value);
@@ -974,46 +993,53 @@
             }
         }
         
+        // 需求2、3：書目資料直排顯示，按指定順序
         function displayResults(data) {
             const book = data.bookInfo;
             const libs = data.libraries;
             const rawLocation = data.rawLocation || '';
             
-            let html = `
+            // 需求3：按指定順序顯示書目資料
+            const bookFields = [
+                { num: 1, key: 'title', label: '書名' },
+                { num: 2, key: 'catalogNo', label: '館藏編目號碼' },
+                { num: 3, key: 'callNo', label: '索書號' },
+                { num: 4, key: 'author', label: '著者' },
+                { num: 5, key: 'description', label: '著錄' },
+                { num: 6, key: 'pubLoc', label: '出版地' },
+                { num: 7, key: 'publisher', label: '出版者' },
+                { num: 8, key: 'pubYear', label: '出版年份' },
+                { num: 9, key: 'series', label: '叢書名' }
+            ];
+            
+            let bookInfoHtml = `
                 <div class="book-info">
-                    <h2>📖 ${escapeHtml(book.title) || '未知書名'}</h2>
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <span class="info-label">館藏編目號碼</span>
-                            <span class="info-value">${escapeHtml(book.catalogNo) || '-'}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">索書號</span>
-                            <span class="info-value">${escapeHtml(book.callNo) || '-'}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">著者</span>
-                            <span class="info-value">${escapeHtml(book.author) || '-'}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">出版年份</span>
-                            <span class="info-value">${escapeHtml(book.pubYear) || '-'}</span>
-                        </div>
-                        ${book.series ? `
-                        <div class="info-item" style="grid-column: 1 / -1;">
-                            <span class="info-label">叢書名</span>
-                            <span class="info-value">${escapeHtml(book.series)}</span>
-                        </div>
-                        ` : ''}
-                    </div>
-                </div>
+                    <h2>📖 書目資料</h2>
+                    <div class="info-list">
             `;
             
-            // 可選圖書館及位置資訊（需求3）
+            bookFields.forEach(field => {
+                const value = book[field.key] || '-';
+                if (value !== '-' || field.key === 'title') { // 標題必顯示，其他有值才顯示
+                    bookInfoHtml += `
+                        <div class="info-row">
+                            <div class="info-number">${field.num}</div>
+                            <div class="info-label">${field.label}</div>
+                            <div class="info-value">${escapeHtml(value)}</div>
+                        </div>
+                    `;
+                }
+            });
+            
+            bookInfoHtml += '</div></div>';
+            
+            let html = bookInfoHtml;
+            
+            // 需求1：放大3倍的可選圖書館及位置資訊
             html += `
                 <div class="library-summary">
-                    <span>📍 可選圖書館：${libs.total} 間 (顯示前 ${libs.displayed} 筆)</span>
-                    ${rawLocation ? `<span class="location-badge">位置: ${escapeHtml(rawLocation)}</span>` : '<span class="location-badge" style="color:#999">無位置資料</span>'}
+                    <span>📚 可選圖書館：${libs.total} 間 (顯示前 ${libs.displayed} 筆)</span>
+                    ${rawLocation ? `<span class="location-badge">位置: ${escapeHtml(rawLocation)}</span>` : '<span class="location-badge">無位置資料</span>'}
                 </div>
             `;
             
@@ -1084,7 +1110,6 @@
             document.getElementById('statusBar').style.display = 'none';
         }
         
-        // ================= 工具函數 =================
         function apiCall(action, params = {}) {
             return new Promise((resolve, reject) => {
                 const callbackName = 'cb_' + Date.now();
@@ -1146,7 +1171,6 @@
             return div.innerHTML;
         }
         
-        // Enter 鍵支援
         document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') searchBook();
         });
