@@ -2,73 +2,74 @@
 <html lang="zh-HK">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>圖書查詢</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Microsoft JhengHei", "微軟正黑體", sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 10px;
         }
         
         .container {
             max-width: 1400px;
             margin: 0 auto;
             background: white;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
             overflow: hidden;
         }
         
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 25px;
+            padding: 15px;
             text-align: center;
         }
         
         .header h1 {
-            font-size: 26px;
-            margin-bottom: 8px;
+            font-size: 20px;
             font-weight: 600;
         }
         
         /* 主布局：左工具欄 + 中內容 */
         .main-wrapper {
             display: grid;
-            grid-template-columns: 80px 1fr;
-            min-height: 600px;
+            grid-template-columns: 70px 1fr;
+            min-height: calc(100vh - 60px);
         }
         
-        /* 左側工具欄 - 四個功能按鈕 */
+        /* 左側工具欄 */
         .left-toolbar {
             background: #f8f9fa;
             border-right: 1px solid #e9ecef;
-            padding: 20px 10px;
+            padding: 15px 5px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 15px;
             align-items: center;
+            overflow-y: auto;
         }
         
         .tool-btn {
-            width: 60px;
-            height: 60px;
-            border-radius: 12px;
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
             border: 2px solid transparent;
             background: white;
             color: #667eea;
-            font-size: 24px;
+            font-size: 20px;
             cursor: pointer;
             transition: all 0.3s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -76,22 +77,14 @@
             gap: 2px;
         }
         
-        .tool-btn:hover {
-            background: #667eea;
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-        
-        .tool-btn.active {
+        .tool-btn:hover, .tool-btn.active {
             background: #667eea;
             color: white;
             border-color: #764ba2;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
         
         .tool-btn .label {
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 600;
         }
         
@@ -100,13 +93,15 @@
             padding: 0;
             overflow: hidden;
             background: #fafafa;
+            height: calc(100vh - 60px);
+            overflow-y: auto;
         }
         
-        /* 功能區塊（預設隱藏，透過JS切換） */
+        /* 功能區塊 */
         .function-block {
             display: none;
             animation: fadeIn 0.3s ease;
-            height: 100%;
+            min-height: 100%;
         }
         
         .function-block.active {
@@ -118,49 +113,50 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
-        /* 圖書查詢專用布局：內容區 + Manual Select */
+        /* 圖書查詢專用布局 */
         .search-layout {
             display: grid;
-            grid-template-columns: 1fr 320px;
-            height: 100%;
-            max-height: calc(100vh - 120px);
+            grid-template-columns: 1fr 300px;
+            min-height: 100%;
         }
         
         .search-main {
-            padding: 30px;
+            padding: 20px;
             overflow-y: auto;
+            max-height: calc(100vh - 60px);
         }
         
         .search-sidebar {
             background: #f8f9fa;
             border-left: 1px solid #e9ecef;
-            padding: 20px;
+            padding: 15px;
             display: flex;
             flex-direction: column;
             height: 100%;
             overflow-y: auto;
+            max-height: calc(100vh - 60px);
         }
         
         .block-title {
-            font-size: 22px;
+            font-size: 18px;
             font-weight: 700;
             color: #333;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
             border-bottom: 3px solid #667eea;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
         
         /* 控制區塊樣式 */
         .control-box {
             background: white;
-            padding: 25px;
-            border-radius: 12px;
+            padding: 20px;
+            border-radius: 10px;
             border: 1px solid #e0e0e0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            margin-bottom: 15px;
         }
         
         .input-group {
@@ -171,12 +167,13 @@
         }
         
         input[type="text"], input[type="number"], textarea {
-            padding: 12px 15px;
+            padding: 10px 12px;
             border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 15px;
+            border-radius: 6px;
+            font-size: 14px;
             transition: all 0.3s;
             font-family: inherit;
+            width: 100%;
         }
         
         input[type="text"]:focus, input[type="number"]:focus, textarea:focus {
@@ -190,17 +187,15 @@
         }
         
         textarea {
-            width: 100%;
-            min-height: 120px;
+            min-height: 100px;
             resize: vertical;
-            font-size: 14px;
-            line-height: 1.6;
+            line-height: 1.5;
         }
         
         button {
-            padding: 12px 24px;
+            padding: 10px 20px;
             border: none;
-            border-radius: 8px;
+            border-radius: 6px;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
@@ -216,11 +211,6 @@
         .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-        }
-        
-        .btn-primary:hover:not(:disabled) {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
         
         .btn-secondary {
@@ -249,15 +239,15 @@
         }
         
         .btn-sm {
-            padding: 8px 16px;
-            font-size: 13px;
+            padding: 6px 12px;
+            font-size: 12px;
         }
         
         /* Manual Select 樣式 */
         .search-sidebar h3 {
-            font-size: 16px;
+            font-size: 14px;
             color: #495057;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -268,42 +258,31 @@
             overflow-y: auto;
             background: white;
             border: 1px solid #dee2e6;
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 15px;
-            max-height: 400px;
+            border-radius: 6px;
+            padding: 8px;
+            margin-bottom: 10px;
+            max-height: 300px;
         }
         
         .manual-item {
-            padding: 10px;
+            padding: 8px;
             border-bottom: 1px solid #f0f0f0;
-            font-size: 13px;
+            font-size: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             cursor: pointer;
             transition: all 0.2s;
-            animation: slideIn 0.3s ease;
-        }
-        
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-10px); }
-            to { opacity: 1; transform: translateX(0); }
         }
         
         .manual-item:hover {
             background: #f8f9fa;
-            transform: translateX(2px);
-        }
-        
-        .manual-item:last-child {
-            border-bottom: none;
         }
         
         .manual-item-text {
             flex: 1;
             word-break: break-all;
-            margin-right: 8px;
+            margin-right: 5px;
         }
         
         .manual-item-remove {
@@ -312,76 +291,73 @@
             font-weight: bold;
             padding: 2px 6px;
             border-radius: 4px;
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-        
-        .manual-item:hover .manual-item-remove {
-            opacity: 1;
+            font-size: 14px;
         }
         
         .manual-input-group {
             display: flex;
-            gap: 8px;
-            margin-bottom: 10px;
+            gap: 6px;
+            margin-bottom: 8px;
         }
         
         .manual-input-group input {
             flex: 1;
-            padding: 8px;
-            font-size: 13px;
+            padding: 6px;
+            font-size: 12px;
         }
         
         .manual-actions {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 10px;
+            gap: 6px;
+            margin-bottom: 8px;
         }
         
         .export-btn {
             width: 100%;
-            margin-top: 5px;
         }
         
         .empty-list {
             text-align: center;
             color: #adb5bd;
-            padding: 20px;
-            font-size: 13px;
+            padding: 15px;
+            font-size: 12px;
         }
         
         /* 搜尋區特殊樣式 */
         .search-hint {
-            font-size: 13px;
+            font-size: 12px;
             color: #666;
-            margin-bottom: 15px;
-            padding: 12px 15px;
+            margin-bottom: 12px;
+            padding: 10px;
             background: #e3f2fd;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+            line-height: 1.4;
         }
         
         .search-box {
             display: flex;
-            gap: 12px;
-            margin-bottom: 25px;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
         }
         
         .search-box input[type="text"] {
             flex: 1;
-            padding: 15px 20px;
-            font-size: 18px;
-            border: 3px solid #667eea;
-            border-radius: 10px;
+            min-width: 200px;
+            padding: 12px 15px;
+            font-size: 16px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
         }
         
         /* 結果顯示 */
         .status-bar {
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 14px;
+            padding: 10px 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 13px;
             display: none;
         }
         
@@ -403,95 +379,92 @@
             display: block;
         }
         
-        /* 可選圖書館及位置保持放大3倍 */
+        /* 可選圖書館及位置 */
         .library-summary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 30px 40px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            font-size: 42px;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 24px;
             font-weight: 700;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
             line-height: 1.4;
+            flex-wrap: wrap;
+            gap: 10px;
         }
         
         .location-badge {
             background: rgba(255,255,255,0.95);
             color: #764ba2;
-            padding: 15px 30px;
-            border-radius: 50px;
-            font-size: 36px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 18px;
             font-weight: 700;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            border: 3px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
         }
         
-        /* 書目資料原大小直排 */
+        /* 書目資料 */
         .book-info {
             background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
             border-left: 4px solid #ff9800;
-            padding: 20px;
-            margin-bottom: 25px;
-            border-radius: 0 10px 10px 0;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 0 8px 8px 0;
         }
         
         .book-info h2 {
             color: #e65100;
-            margin-bottom: 15px;
-            font-size: 20px;
+            margin-bottom: 12px;
+            font-size: 16px;
             font-weight: 600;
             border-bottom: 2px solid #ff9800;
-            padding-bottom: 10px;
+            padding-bottom: 8px;
         }
         
         .info-list {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
         }
         
         .info-row {
             display: flex;
             align-items: baseline;
-            padding: 8px 0;
+            padding: 6px 0;
             border-bottom: 1px solid rgba(255, 152, 0, 0.2);
-        }
-        
-        .info-row:last-child {
-            border-bottom: none;
+            font-size: 13px;
         }
         
         .info-number {
             background: #ff9800;
             color: white;
-            width: 24px;
-            height: 24px;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 12px;
-            margin-right: 12px;
+            font-size: 10px;
+            margin-right: 8px;
             flex-shrink: 0;
         }
         
         .info-label {
-            font-size: 11px;
+            font-size: 10px;
             color: #e65100;
             font-weight: 700;
-            min-width: 100px;
-            margin-right: 10px;
+            min-width: 80px;
+            margin-right: 8px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
         
         .info-value {
-            font-size: 14px;
+            font-size: 13px;
             color: #212121;
             font-weight: 600;
             flex: 1;
@@ -500,26 +473,29 @@
         
         /* 表格 */
         .libraries-section {
-            margin-top: 20px;
+            margin-top: 15px;
+            overflow-x: auto;
         }
         
         .section-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 5px;
         }
         
         .section-title {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 600;
             color: #333;
         }
         
         .badge {
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 11px;
             font-weight: 600;
         }
         
@@ -537,10 +513,11 @@
             width: 100%;
             border-collapse: collapse;
             background: white;
-            border-radius: 8px;
+            border-radius: 6px;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            font-size: 13px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            font-size: 12px;
+            min-width: 600px;
         }
         
         thead {
@@ -548,15 +525,15 @@
             color: white;
         }
         
-        th {
-            padding: 12px;
+        th, td {
+            padding: 8px 10px;
             text-align: left;
-            font-weight: 600;
+            border-bottom: 1px solid #e0e0e0;
         }
         
-        td {
-            padding: 10px 12px;
-            border-bottom: 1px solid #e0e0e0;
+        th {
+            font-weight: 600;
+            white-space: nowrap;
         }
         
         tr:hover {
@@ -574,7 +551,7 @@
         
         .loading {
             text-align: center;
-            padding: 40px;
+            padding: 30px;
             color: #757575;
         }
         
@@ -582,10 +559,10 @@
             border: 3px solid #f3f3f3;
             border-top: 3px solid #667eea;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 35px;
+            height: 35px;
             animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
+            margin: 0 auto 10px;
         }
         
         @keyframes spin {
@@ -595,29 +572,36 @@
         
         .empty-state {
             text-align: center;
-            padding: 60px 20px;
+            padding: 40px 20px;
             color: #9e9e9e;
         }
         
+        .empty-state svg {
+            width: 48px;
+            height: 48px;
+            opacity: 0.3;
+            margin-bottom: 12px;
+        }
+        
         .helper-text {
-            font-size: 13px;
+            font-size: 12px;
             color: #6c757d;
-            margin-top: 10px;
-            line-height: 1.5;
+            margin-top: 8px;
+            line-height: 1.4;
         }
         
         .batch-default-location {
-            margin-bottom: 15px;
-            padding: 15px;
+            margin-bottom: 12px;
+            padding: 12px;
             background: #fff3cd;
-            border-radius: 8px;
+            border-radius: 6px;
             border: 1px solid #ffeaa7;
         }
         
         .batch-actions {
             display: flex;
-            gap: 10px;
-            margin-top: 15px;
+            gap: 8px;
+            margin-top: 12px;
         }
         
         .batch-actions button {
@@ -626,13 +610,34 @@
         
         /* 其他功能頁面樣式 */
         .panel-content {
-            padding: 30px;
+            padding: 20px;
             max-width: 800px;
+            margin: 0 auto;
         }
         
+        /* 響應式設計 - 平板 */
         @media (max-width: 968px) {
+            body {
+                padding: 5px;
+            }
+            
             .main-wrapper {
-                grid-template-columns: 70px 1fr;
+                grid-template-columns: 60px 1fr;
+            }
+            
+            .left-toolbar {
+                padding: 10px 3px;
+                gap: 10px;
+            }
+            
+            .tool-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 18px;
+            }
+            
+            .tool-btn .label {
+                font-size: 8px;
             }
             
             .search-layout {
@@ -644,57 +649,141 @@
             }
             
             .library-summary {
-                font-size: 24px;
-                padding: 20px;
-                flex-direction: column;
-                gap: 15px;
+                font-size: 18px;
+                padding: 15px;
                 text-align: center;
+                justify-content: center;
             }
             
             .location-badge {
-                font-size: 20px;
+                font-size: 14px;
+                padding: 6px 12px;
+                width: 100%;
+                text-align: center;
             }
             
-            .left-toolbar {
-                padding: 15px 5px;
-            }
-            
-            .tool-btn {
-                width: 50px;
-                height: 50px;
-                font-size: 20px;
-            }
-            
-            .tool-btn .label {
-                display: none;
+            .search-main {
+                padding: 15px;
+                max-height: none;
             }
         }
         
+        /* 響應式設計 - 手機 */
         @media (max-width: 640px) {
+            .header h1 {
+                font-size: 18px;
+            }
+            
             .main-wrapper {
                 grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr;
             }
             
             .left-toolbar {
                 flex-direction: row;
-                justify-content: center;
-                padding: 10px;
+                justify-content: space-around;
+                padding: 8px;
                 border-right: none;
                 border-bottom: 1px solid #e9ecef;
-                gap: 10px;
+                gap: 5px;
+                overflow-x: auto;
+            }
+            
+            .tool-btn {
+                width: 60px;
+                height: 40px;
+                font-size: 16px;
+                flex-direction: row;
+                gap: 4px;
+                padding: 0 8px;
+            }
+            
+            .tool-btn .label {
+                font-size: 10px;
+            }
+            
+            .content-area {
+                height: calc(100vh - 110px);
             }
             
             .search-box {
                 flex-direction: column;
             }
             
+            .search-box input[type="text"] {
+                width: 100%;
+                font-size: 16px; /* 防止 iOS 縮放 */
+            }
+            
             .input-group {
                 flex-direction: column;
                 align-items: stretch;
+                width: 100%;
             }
             
-            .input-group input {
+            .input-group input,
+            .input-group button {
                 width: 100%;
+            }
+            
+            .block-title {
+                font-size: 16px;
+                margin-bottom: 15px;
+            }
+            
+            .control-box {
+                padding: 15px;
+            }
+            
+            .batch-actions {
+                flex-direction: column;
+            }
+            
+            table {
+                font-size: 11px;
+                min-width: 100%;
+            }
+            
+            th, td {
+                padding: 6px 8px;
+            }
+            
+            .info-row {
+                font-size: 12px;
+            }
+            
+            .info-label {
+                min-width: 70px;
+            }
+            
+            .library-summary {
+                font-size: 16px;
+                padding: 12px;
+            }
+            
+            .manual-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* 超小螢幕 */
+        @media (max-width: 380px) {
+            .tool-btn {
+                width: 50px;
+                height: 36px;
+                font-size: 14px;
+            }
+            
+            .tool-btn .label {
+                font-size: 9px;
+            }
+            
+            .library-summary {
+                font-size: 14px;
+            }
+            
+            .location-badge {
+                font-size: 12px;
             }
         }
     </style>
@@ -705,9 +794,8 @@
             <h1>📚 圖書查詢</h1>
         </div>
         
-        <!-- 主內容區 -->
         <div class="main-wrapper">
-            <!-- 左側工具欄 - 四個功能按鈕 -->
+            <!-- 左側工具欄 -->
             <div class="left-toolbar">
                 <button class="tool-btn active" data-target="search" onclick="switchPanel('search')" title="圖書查詢">
                     <span>🔍</span>
@@ -730,10 +818,9 @@
             <!-- 中間內容區 -->
             <div class="content-area">
                 
-                <!-- 1) 圖書查詢功能區（預設顯示） -->
+                <!-- 1) 圖書查詢功能區 -->
                 <div id="panel-search" class="function-block active">
                     <div class="search-layout">
-                        <!-- 左側：查詢內容 -->
                         <div class="search-main">
                             <div class="block-title">🔍 圖書查詢</div>
                             
@@ -743,8 +830,8 @@
                                 </div>
                                 
                                 <div class="search-box">
-                                    <input type="text" id="searchInput" placeholder="請輸入14位數條碼..." autocomplete="off" maxlength="14">
-                                    <button class="btn-primary" onclick="searchBook()" id="searchBtn" style="padding: 15px 35px; font-size: 16px;">
+                                    <input type="text" id="searchInput" placeholder="請輸入14位數條碼..." autocomplete="off" maxlength="14" inputmode="numeric" pattern="[0-9]*">
+                                    <button class="btn-primary" onclick="searchBook()" id="searchBtn">
                                         查詢
                                     </button>
                                     <button class="btn-secondary" onclick="clearResults()">
@@ -756,7 +843,7 @@
                                 
                                 <div id="results">
                                     <div class="empty-state">
-                                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.3; margin-bottom: 16px;">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <circle cx="11" cy="11" r="8"></circle>
                                             <path d="m21 21-4.35-4.35"></path>
                                         </svg>
@@ -766,7 +853,7 @@
                             </div>
                         </div>
                         
-                        <!-- 右側：Manual Select（只在圖書查詢顯示） -->
+                        <!-- 右側：Manual Select -->
                         <div class="search-sidebar">
                             <h3>
                                 📋 Manual Select
@@ -794,19 +881,19 @@
                     </div>
                 </div>
                 
-                <!-- 2) 顯示設定功能區（預設隱藏） -->
+                <!-- 2) 顯示設定功能區 -->
                 <div id="panel-display" class="function-block">
                     <div class="panel-content">
                         <div class="block-title">⚙️ 顯示設定</div>
                         
                         <div class="control-box">
-                            <div class="control-title" style="margin-bottom: 15px; font-size: 16px;">
+                            <div style="margin-bottom: 15px; font-size: 16px;">
                                 <span style="background: #667eea; color: white; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 8px;">1</span>
                                 顯示數量設定
                             </div>
-                            <div class="input-group">
-                                <label style="font-size: 15px; color: #555;">圖書館顯示數量：</label>
-                                <input type="number" id="displayLimit" value="100" min="1" max="500" style="width: 120px; font-size: 16px;">
+                            <div class="input-group" style="flex-direction: row;">
+                                <label style="font-size: 14px; color: #555;">圖書館顯示數量：</label>
+                                <input type="number" id="displayLimit" value="100" min="1" max="500">
                                 <button class="btn-secondary" onclick="updateDisplayLimit()">套用設定</button>
                             </div>
                             <div class="helper-text">設定查詢結果顯示的圖書館數量上限（預設100筆）</div>
@@ -814,23 +901,21 @@
                     </div>
                 </div>
                 
-                <!-- 3) 單一位置更新功能區（預設隱藏） -->
+                <!-- 3) 單一位置更新功能區 -->
                 <div id="panel-single" class="function-block">
                     <div class="panel-content">
                         <div class="block-title">📝 單一位置更新</div>
                         
                         <div class="control-box">
-                            <div class="control-title" style="margin-bottom: 15px; font-size: 16px;">
+                            <div style="margin-bottom: 15px; font-size: 16px;">
                                 <span style="background: #667eea; color: white; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 8px;">2</span>
                                 更新書目位置
                             </div>
-                            <div class="input-group" style="flex-direction: column; gap: 15px;">
-                                <div style="display: flex; gap: 10px; width: 100%;">
-                                    <input type="text" id="singleBookKey" placeholder="14位數條碼（RawData A欄）" style="flex: 1;" maxlength="14">
-                                </div>
+                            <div class="input-group" style="flex-direction: column; gap: 10px;">
+                                <input type="text" id="singleBookKey" placeholder="14位數條碼（RawData A欄）" maxlength="14" inputmode="numeric" pattern="[0-9]*">
                                 <div style="display: flex; gap: 10px; width: 100%;">
                                     <input type="text" id="singleLocation" placeholder="新位置（C欄）" style="flex: 1;">
-                                    <button class="btn-success" onclick="updateSingleLocation()" style="min-width: 100px;">更新</button>
+                                    <button class="btn-success" onclick="updateSingleLocation()">更新</button>
                                 </div>
                             </div>
                             <div class="helper-text">請輸入14位數字條碼。更新後自動清除條碼欄，位置欄保留供下次使用</div>
@@ -840,20 +925,20 @@
                     </div>
                 </div>
                 
-                <!-- 4) 批量位置更新功能區（預設隱藏） -->
+                <!-- 4) 批量位置更新功能區 -->
                 <div id="panel-batch" class="function-block">
                     <div class="panel-content">
                         <div class="block-title">📋 批量位置更新</div>
                         
                         <div class="control-box">
-                            <div class="control-title" style="margin-bottom: 15px; font-size: 16px;">
+                            <div style="margin-bottom: 15px; font-size: 16px;">
                                 <span style="background: #667eea; color: white; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 8px;">3</span>
                                 批量更新書目位置
                             </div>
                             
                             <div class="batch-default-location">
-                                <label style="font-size: 14px; color: #856404; font-weight: 600; display: block; margin-bottom: 8px;">預設位置（當下方未指定位置時使用）：</label>
-                                <input type="text" id="batchDefaultLocation" placeholder="輸入預設位置..." style="width: 100%; border-color: #ffeaa7;">
+                                <label style="font-size: 13px; color: #856404; font-weight: 600; display: block; margin-bottom: 6px;">預設位置（當下方未指定位置時使用）：</label>
+                                <input type="text" id="batchDefaultLocation" placeholder="輸入預設位置..." style="border-color: #ffeaa7;">
                             </div>
                             
                             <textarea id="batchData" placeholder="格式：條碼,位置 或 僅條碼（使用上方預設位置）&#10;每行只取前14個字元&#10;例如：&#10;9789861234567,3F-A區&#10;9789861234568&#10;9789861234569,2F-C區"></textarea>
@@ -1021,6 +1106,7 @@
             else if (panel === 'batch') statusId = 'batchStatus';
             
             const bar = document.getElementById(statusId);
+            if (!bar) return;
             bar.className = 'status-bar ' + type;
             bar.textContent = message;
             bar.style.display = 'block';
@@ -1093,7 +1179,7 @@
             const listDiv = document.getElementById('manualList');
             const countSpan = document.getElementById('manualCount');
             
-            countSpan.textContent = `(${manualSelectData.length})`;
+            if (countSpan) countSpan.textContent = `(${manualSelectData.length})`;
             
             if (manualSelectData.length === 0) {
                 listDiv.innerHTML = '<div class="empty-list">暫無項目<br>在下方輸入添加</div>';
@@ -1103,7 +1189,7 @@
             let html = '';
             manualSelectData.forEach((item, index) => {
                 html += `
-                    <div class="manual-item" style="animation-delay: ${index * 0.05}s">
+                    <div class="manual-item">
                         <span class="manual-item-text" onclick="useManualItem('${escapeHtml(item)}')">${escapeHtml(item)}</span>
                         <span class="manual-item-remove" onclick="removeManualItem('${escapeHtml(item)}', ${index})" title="移除">×</span>
                     </div>
@@ -1312,12 +1398,12 @@
                 `;
                 
                 if (libs.hasMore) {
-                    html += `<div style="margin-bottom: 15px; color: #666; font-size: 13px; background: #fff3cd; padding: 8px 12px; border-radius: 6px;">
+                    html += `<div style="margin-bottom: 15px; color: #666; font-size: 12px; background: #fff3cd; padding: 8px 12px; border-radius: 6px;">
                         ⚠️ 還有 ${libs.total - libs.displayed} 間圖書館未顯示，請在左側「顯示設定」增加數量
                     </div>`;
                 }
                 
-                html += `<div style="overflow-x: auto;"><table>
+                html += `<table>
                     <thead>
                         <tr>
                             <th>圖書館</th>
@@ -1344,17 +1430,17 @@
                     `;
                 });
                 
-                html += '</tbody></table></div></div>';
+                html += '</tbody></table></div>';
             }
             
-            document.getElementById('results').innerHTML = html;
+            resultsDiv.innerHTML = html;
         }
         
         function clearResults() {
             document.getElementById('searchInput').value = '';
             document.getElementById('results').innerHTML = `
                 <div class="empty-state">
-                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.3; margin-bottom: 16px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="8"></circle>
                         <path d="m21 21-4.35-4.35"></path>
                     </svg>
@@ -1371,6 +1457,7 @@
             return div.innerHTML;
         }
         
+        // 事件監聽
         document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') searchBook();
         });
