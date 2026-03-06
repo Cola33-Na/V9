@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HKPL 圖書查詢系統 API 版</title>
+    <title>HKPL 圖書查詢系統 - API版（含位置管理）</title>
     <style>
         * {
             margin: 0;
@@ -19,7 +19,7 @@
         }
         
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             background: white;
             border-radius: 16px;
@@ -30,13 +30,13 @@
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 30px;
+            padding: 25px;
             text-align: center;
         }
         
         .header h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
+            font-size: 26px;
+            margin-bottom: 8px;
             font-weight: 600;
         }
         
@@ -45,62 +45,96 @@
             font-size: 14px;
         }
         
-        .controls {
-            padding: 30px;
+        /* 控制區域 */
+        .control-panel {
             background: #f8f9fa;
             border-bottom: 1px solid #e9ecef;
+            padding: 20px;
+        }
+        
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .control-section {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .control-title {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 12px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .control-title span {
+            background: #667eea;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
         }
         
         .input-group {
             display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
+            gap: 8px;
             flex-wrap: wrap;
         }
         
-        .input-wrapper {
-            flex: 1;
-            min-width: 200px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #495057;
+        input[type="text"], input[type="number"], textarea {
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
             font-size: 14px;
-        }
-        
-        input[type="text"], input[type="number"] {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #dee2e6;
-            border-radius: 8px;
-            font-size: 16px;
             transition: all 0.3s;
+            font-family: inherit;
         }
         
-        input[type="text"]:focus, input[type="number"]:focus {
+        input[type="text"]:focus, input[type="number"]:focus, textarea:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
         
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            align-items: flex-end;
+        input[type="number"] {
+            width: 80px;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 80px;
+            resize: vertical;
+            font-size: 13px;
+            line-height: 1.5;
         }
         
         button {
-            padding: 12px 24px;
+            padding: 10px 18px;
             border: none;
-            border-radius: 8px;
-            font-size: 16px;
+            border-radius: 6px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
             white-space: nowrap;
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
         
         .btn-primary {
@@ -109,8 +143,8 @@
         }
         
         .btn-primary:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
         
         .btn-secondary {
@@ -118,89 +152,197 @@
             color: white;
         }
         
-        .btn-secondary:hover:not(:disabled) {
-            background: #5a6268;
+        .btn-success {
+            background: #28a745;
+            color: white;
         }
         
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
+        .btn-danger {
+            background: #dc3545;
+            color: white;
         }
         
-        .settings {
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        
+        /* 主內容區 */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 0;
+            min-height: 600px;
+        }
+        
+        .content-area {
+            padding: 25px;
+            overflow-y: auto;
+        }
+        
+        /* Manual Select 側邊欄 */
+        .sidebar {
+            background: #f8f9fa;
+            border-left: 1px solid #e9ecef;
+            padding: 20px;
             display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            font-size: 14px;
-            color: #6c757d;
+            flex-direction: column;
+            height: 100%;
         }
         
-        .setting-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .setting-item input {
-            width: 80px;
-            padding: 6px 10px;
-            border: 1px solid #ced4da;
-            border-radius: 4px;
-        }
-        
-        .content {
-            padding: 30px;
-        }
-        
-        .status-bar {
+        .sidebar h3 {
+            font-size: 16px;
+            color: #495057;
+            margin-bottom: 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 20px;
-            background: #e3f2fd;
+        }
+        
+        .manual-list {
+            flex: 1;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+            max-height: 500px;
+        }
+        
+        .manual-item {
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .manual-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .manual-item:last-child {
+            border-bottom: none;
+        }
+        
+        .manual-item-text {
+            flex: 1;
+            word-break: break-all;
+            margin-right: 8px;
+        }
+        
+        .manual-item-remove {
+            color: #dc3545;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        
+        .manual-item-remove:hover {
+            background: #ffebee;
+        }
+        
+        .manual-input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .manual-input-group input {
+            flex: 1;
+            padding: 8px;
+            font-size: 13px;
+        }
+        
+        .manual-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        
+        .empty-list {
+            text-align: center;
+            color: #adb5bd;
+            padding: 20px;
+            font-size: 13px;
+        }
+        
+        /* 搜尋區 */
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .search-box input[type="text"] {
+            flex: 1;
+            padding: 12px 16px;
+            font-size: 16px;
+        }
+        
+        /* 結果顯示 */
+        .status-bar {
+            padding: 12px 16px;
             border-radius: 8px;
             margin-bottom: 20px;
             font-size: 14px;
+            display: none;
+        }
+        
+        .status-bar.info {
+            background: #e3f2fd;
             color: #1976d2;
+            display: block;
         }
         
         .status-bar.error {
             background: #ffebee;
             color: #c62828;
+            display: block;
         }
         
         .status-bar.success {
             background: #e8f5e9;
             color: #2e7d32;
+            display: block;
         }
         
         .book-info {
-            background: #fff3e0;
+            background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
             border-left: 4px solid #ff9800;
             padding: 20px;
             margin-bottom: 25px;
-            border-radius: 0 8px 8px 0;
+            border-radius: 0 10px 10px 0;
         }
         
         .book-info h2 {
             color: #e65100;
             margin-bottom: 15px;
             font-size: 20px;
+            font-weight: 600;
         }
         
         .info-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
         }
         
         .info-item {
             display: flex;
             flex-direction: column;
+            background: rgba(255,255,255,0.6);
+            padding: 10px;
+            border-radius: 6px;
         }
         
         .info-label {
-            font-size: 12px;
+            font-size: 11px;
             color: #757575;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -208,14 +350,14 @@
         }
         
         .info-value {
-            font-size: 15px;
+            font-size: 14px;
             color: #212121;
-            font-weight: 500;
-            word-break: break-word;
+            font-weight: 600;
         }
         
+        /* 表格 */
         .libraries-section {
-            margin-top: 25px;
+            margin-top: 20px;
         }
         
         .section-header {
@@ -254,7 +396,8 @@
             background: white;
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            font-size: 13px;
         }
         
         thead {
@@ -263,26 +406,18 @@
         }
         
         th {
-            padding: 15px;
+            padding: 12px;
             text-align: left;
             font-weight: 600;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
         
         td {
-            padding: 12px 15px;
+            padding: 10px 12px;
             border-bottom: 1px solid #e0e0e0;
-            font-size: 14px;
         }
         
         tr:hover {
             background: #f5f5f5;
-        }
-        
-        tr:last-child td {
-            border-bottom: none;
         }
         
         .status-available {
@@ -321,40 +456,56 @@
             color: #9e9e9e;
         }
         
-        .empty-state svg {
-            width: 64px;
-            height: 64px;
-            margin-bottom: 16px;
-            opacity: 0.5;
-        }
-        
-        .debug-info {
-            margin-top: 20px;
-            padding: 15px;
-            background: #263238;
-            color: #aed581;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
+        .helper-text {
             font-size: 12px;
-            overflow-x: auto;
+            color: #6c757d;
+            margin-top: 6px;
+            line-height: 1.4;
         }
         
-        @media (max-width: 768px) {
+        .batch-preview {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 12px;
+            max-height: 150px;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .batch-preview.show {
+            display: block;
+        }
+        
+        @media (max-width: 968px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                border-left: none;
+                border-top: 1px solid #e9ecef;
+                max-height: 400px;
+            }
+            
+            .control-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .search-box {
+                flex-direction: column;
+            }
+            
             .input-group {
                 flex-direction: column;
             }
             
-            .btn-group {
-                width: 100%;
-            }
-            
             button {
                 width: 100%;
-            }
-            
-            th, td {
-                padding: 10px 8px;
-                font-size: 13px;
             }
         }
     </style>
@@ -362,53 +513,95 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📚 HKPL 圖書查詢系統</h1>
-            <p>API 直接查詢版本 | 無需寫入工作表 | 即時回傳結果</p>
+            <h1>📚 HKPL 圖書查詢系統（API版）</h1>
+            <p>即時查詢 | 位置管理 | Manual Select</p>
         </div>
         
-        <div class="controls">
-            <div class="input-group">
-                <div class="input-wrapper">
-                    <label for="searchInput">搜尋書名 / 編號（對應 RawData A欄）</label>
-                    <input type="text" id="searchInput" placeholder="輸入書名或編號..." autocomplete="off">
+        <!-- 控制面板 -->
+        <div class="control-panel">
+            <div class="control-grid">
+                <!-- 2.1 顯示數量設定 -->
+                <div class="control-section">
+                    <div class="control-title"><span>1</span> 顯示設定</div>
+                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <label style="margin: 0; font-size: 13px; color: #666;">圖書館顯示數量：</label>
+                        <input type="number" id="displayLimit" value="100" min="1" max="500" style="width: 80px;">
+                        <button class="btn-secondary btn-sm" onclick="updateDisplayLimit()">套用</button>
+                    </div>
+                    <div class="helper-text">設定查詢結果顯示的圖書館數量上限（預設100）</div>
                 </div>
-                <div class="btn-group">
-                    <button class="btn-primary" onclick="searchBook()" id="searchBtn">
+                
+                <!-- 2.2 單一輸入書目位置 -->
+                <div class="control-section">
+                    <div class="control-title"><span>2</span> 單一位置更新</div>
+                    <div class="input-group">
+                        <input type="text" id="singleBookKey" placeholder="書名或編號（RawData A欄）" style="flex: 1;">
+                        <input type="text" id="singleLocation" placeholder="新位置（C欄）" style="width: 120px;">
+                        <button class="btn-success btn-sm" onclick="updateSingleLocation()">更新</button>
+                    </div>
+                    <div class="helper-text">更新 RawData 工作表中指定書目的位置（C欄）</div>
+                </div>
+                
+                <!-- 2.3 批量輸入書目位置 -->
+                <div class="control-section">
+                    <div class="control-title"><span>3</span> 批量位置更新</div>
+                    <textarea id="batchData" placeholder="格式：書名,位置&#10;例如：&#10;哈利波特,3F-A區&#10;魔戒,2F-B區&#10;（每行一筆，可用逗號或Tab分隔）"></textarea>
+                    <div class="batch-preview" id="batchPreview"></div>
+                    <div style="display: flex; gap: 8px; margin-top: 8px;">
+                        <button class="btn-success btn-sm" onclick="previewBatch()">預覽</button>
+                        <button class="btn-primary btn-sm" onclick="submitBatchUpdate()">確認批量更新</button>
+                    </div>
+                    <div class="helper-text">批量更新多筆書目位置，失敗項目會記錄到 AddNewAddressErr 工作表</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 主內容區 -->
+        <div class="main-layout">
+            <div class="content-area">
+                <!-- 搜尋框 -->
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="輸入書名或編號查詢圖書館館藏..." autocomplete="off">
+                    <button class="btn-primary" onclick="searchBook()" id="searchBtn" style="padding: 12px 30px;">
                         🔍 查詢
                     </button>
                     <button class="btn-secondary" onclick="clearResults()">
                         清除
                     </button>
                 </div>
-            </div>
-            
-            <div class="settings">
-                <div class="setting-item">
-                    <label for="displayLimit">顯示數量限制 (F1):</label>
-                    <input type="number" id="displayLimit" value="100" min="1" max="500">
-                </div>
-                <div class="setting-item">
-                    <label for="locationFilter">指定位置:</label>
-                    <input type="text" id="locationFilter" placeholder="選填">
-                </div>
-                <div class="setting-item">
-                    <label>
-                        <input type="checkbox" id="useCache" checked> 使用快取
-                    </label>
+                
+                <div id="statusBar" class="status-bar"></div>
+                
+                <div id="results">
+                    <div class="empty-state">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.3; margin-bottom: 16px;">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.35-4.35"></path>
+                        </svg>
+                        <p>輸入書名或編號開始查詢</p>
+                    </div>
                 </div>
             </div>
-        </div>
-        
-        <div class="content">
-            <div id="statusBar" style="display: none;"></div>
             
-            <div id="results">
-                <div class="empty-state">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <path d="m21 21-4.35-4.35"></path>
-                    </svg>
-                    <p>輸入書名或編號開始查詢</p>
+            <!-- 右側 Manual Select 面板 -->
+            <div class="sidebar">
+                <h3>
+                    📋 Manual Select
+                    <button class="btn-sm btn-primary" onclick="loadManualSelect()" style="padding: 4px 10px; font-size: 11px;">刷新</button>
+                </h3>
+                
+                <div class="manual-list" id="manualList">
+                    <div class="empty-list">載入中...</div>
+                </div>
+                
+                <div class="manual-input-group">
+                    <input type="text" id="newManualItem" placeholder="加入新項目..." onkeypress="if(event.key==='Enter') addManualItem()">
+                    <button class="btn-success btn-sm" onclick="addManualItem()">+</button>
+                </div>
+                
+                <div class="manual-actions">
+                    <button class="btn-danger btn-sm" onclick="clearManualSelect()">清空全部</button>
+                    <button class="btn-secondary btn-sm" onclick="removeLastManual()">移除最後</button>
                 </div>
             </div>
         </div>
@@ -416,82 +609,367 @@
 
     <script>
         // ================= 設定 =================
-        // 請替換為您的 GAS Web App URL
-        const API_URL = 'https://script.google.com/macros/s/AKfycbzl-HifsUB1oZqmtQPLjG0fYCrxZQYTiEWTC5UzftyAhKTj_Ns3BpqavhGFjaHMrRAi/exec';
+        const API_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+        let currentDisplayLimit = 100;
         
-        // ================= 核心功能 =================
+        // ================= 初始化 =================
+        document.addEventListener('DOMContentLoaded', function() {
+            loadManualSelect();
+            
+            // 批量輸入即時預覽
+            document.getElementById('batchData').addEventListener('input', previewBatch);
+        });
         
+        // ================= 2.1 顯示數量設定 =================
+        function updateDisplayLimit() {
+            const val = parseInt(document.getElementById('displayLimit').value);
+            if (val && val > 0) {
+                currentDisplayLimit = val;
+                showStatus(`已設定顯示數量為 ${val} 筆`, 'success');
+            }
+        }
+        
+        // ================= 2.2 單一位置更新 =================
+        async function updateSingleLocation() {
+            const bookKey = document.getElementById('singleBookKey').value.trim();
+            const location = document.getElementById('singleLocation').value.trim();
+            
+            if (!bookKey) {
+                showStatus('請輸入書名或編號', 'error');
+                return;
+            }
+            
+            showStatus('更新中...', 'info');
+            
+            try {
+                const data = await apiCall('updateSingleLocation', {
+                    bookKey: bookKey,
+                    location: location
+                });
+                
+                if (data.success) {
+                    showStatus(`✅ 更新成功！第 ${data.row} 行：${bookKey} -> ${location || '(空)'}`, 'success');
+                    document.getElementById('singleBookKey').value = '';
+                    document.getElementById('singleLocation').value = '';
+                } else {
+                    showStatus('❌ ' + data.error, 'error');
+                }
+            } catch (e) {
+                showStatus('更新失敗：' + e.message, 'error');
+            }
+        }
+        
+        // ================= 2.3 批量位置更新 =================
+        function previewBatch() {
+            const data = document.getElementById('batchData').value.trim();
+            const preview = document.getElementById('batchPreview');
+            
+            if (!data) {
+                preview.classList.remove('show');
+                return;
+            }
+            
+            const lines = data.split('\n').filter(l => l.trim());
+            let html = `<strong>預覽 (${lines.length} 筆)：</strong><br>`;
+            
+            lines.slice(0, 5).forEach(line => {
+                const parts = line.split(/[,\t]/);
+                if (parts.length >= 2) {
+                    html += `• ${parts[0].trim()} → ${parts[1].trim()}<br>`;
+                } else {
+                    html += `• <span style="color:red">${line}</span> (格式錯誤)<br>`;
+                }
+            });
+            
+            if (lines.length > 5) {
+                html += `...還有 ${lines.length - 5} 筆`;
+            }
+            
+            preview.innerHTML = html;
+            preview.classList.add('show');
+        }
+        
+        async function submitBatchUpdate() {
+            const data = document.getElementById('batchData').value.trim();
+            if (!data) {
+                showStatus('請輸入批量資料', 'error');
+                return;
+            }
+            
+            if (!confirm('確定要批量更新位置嗎？此操作將直接修改 RawData 工作表。')) {
+                return;
+            }
+            
+            showStatus('批量更新中，請稍候...', 'info');
+            
+            try {
+                const result = await apiCall('batchUpdateLocation', { data: data });
+                
+                if (result.success) {
+                    let msg = `✅ 批量更新完成！成功：${result.summary.success} 筆`;
+                    if (result.summary.failed > 0) {
+                        msg += `，失敗：${result.summary.failed} 筆（已記錄到 Error 工作表）`;
+                    }
+                    showStatus(msg, result.summary.failed > 0 ? 'info' : 'success');
+                    document.getElementById('batchData').value = '';
+                    document.getElementById('batchPreview').classList.remove('show');
+                } else {
+                    showStatus('❌ ' + result.error, 'error');
+                }
+            } catch (e) {
+                showStatus('批量更新失敗：' + e.message, 'error');
+            }
+        }
+        
+        // ================= Manual Select 功能 =================
+        async function loadManualSelect() {
+            try {
+                const data = await apiCall('getManualSelect');
+                const listDiv = document.getElementById('manualList');
+                
+                if (!data.success || !data.data || data.data.length === 0) {
+                    listDiv.innerHTML = '<div class="empty-list">暫無項目<br>在下方輸入添加</div>';
+                    return;
+                }
+                
+                let html = '';
+                data.data.forEach((item, index) => {
+                    html += `
+                        <div class="manual-item">
+                            <span class="manual-item-text" onclick="useManualItem('${escapeHtml(item)}')">${escapeHtml(item)}</span>
+                            <span class="manual-item-remove" onclick="removeManualItem('${escapeHtml(item)}')" title="移除">×</span>
+                        </div>
+                    `;
+                });
+                listDiv.innerHTML = html;
+                
+            } catch (e) {
+                document.getElementById('manualList').innerHTML = '<div class="empty-list">載入失敗</div>';
+            }
+        }
+        
+        async function addManualItem() {
+            const input = document.getElementById('newManualItem');
+            const value = input.value.trim();
+            if (!value) return;
+            
+            try {
+                const data = await apiCall('addToManualSelect', { value: value });
+                if (data.success) {
+                    input.value = '';
+                    loadManualSelect();
+                } else {
+                    alert(data.error || '添加失敗');
+                }
+            } catch (e) {
+                alert('添加失敗：' + e.message);
+            }
+        }
+        
+        async function removeManualItem(value) {
+            if (!confirm('確定移除「' + value + '」？')) return;
+            
+            try {
+                const data = await apiCall('removeFromManualSelect', { value: value });
+                if (data.success) {
+                    loadManualSelect();
+                }
+            } catch (e) {
+                alert('移除失敗：' + e.message);
+            }
+        }
+        
+        async function removeLastManual() {
+            try {
+                // 取得列表並移除最後一個
+                const data = await apiCall('getManualSelect');
+                if (data.success && data.data.length > 0) {
+                    const lastItem = data.data[data.data.length - 1];
+                    await removeManualItem(lastItem);
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+        
+        async function clearManualSelect() {
+            if (!confirm('確定清空全部 Manual Select 項目？')) return;
+            
+            try {
+                const data = await apiCall('clearManualSelect');
+                if (data.success) {
+                    loadManualSelect();
+                }
+            } catch (e) {
+                alert('清空失敗：' + e.message);
+            }
+        }
+        
+        function useManualItem(value) {
+            document.getElementById('searchInput').value = value;
+            searchBook();
+        }
+        
+        // ================= 查詢功能 =================
         async function searchBook() {
             const input = document.getElementById('searchInput').value.trim();
-            const limit = document.getElementById('displayLimit').value;
-            const location = document.getElementById('locationFilter').value;
             const btn = document.getElementById('searchBtn');
             const resultsDiv = document.getElementById('results');
-            const statusBar = document.getElementById('statusBar');
             
             if (!input) {
                 showStatus('請輸入搜尋內容', 'error');
                 return;
             }
             
-            // 載入狀態
             btn.disabled = true;
             btn.textContent = '查詢中...';
-            resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>正在查詢資料...</p></div>';
+            resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>查詢中...</p></div>';
             showStatus('查詢進行中...', 'info');
             
             try {
-                // 構建 URL（使用 JSONP 避免 CORS 問題）
-                const timestamp = new Date().getTime();
-                const callbackName = 'handleResponse_' + timestamp;
-                
-                const url = `${API_URL}?action=query&input=${encodeURIComponent(input)}&limit=${limit}&location=${encodeURIComponent(location)}&callback=${callbackName}&_=${timestamp}`;
-                
-                // 使用 JSONP
-                const data = await fetchJSONP(url, callbackName);
+                const data = await apiCall('query', {
+                    input: input,
+                    limit: currentDisplayLimit
+                });
                 
                 if (data.success && data.found) {
                     displayResults(data);
-                    showStatus(`查詢成功！耗時 ${data.elapsedSeconds?.toFixed(2) || '?'} 秒 | ExecID: ${data.execId}`, 'success');
+                    showStatus(`✅ 查詢成功（${data.elapsedSeconds?.toFixed(2) || '?'}s）`, 'success');
                 } else if (data.success && !data.found) {
                     resultsDiv.innerHTML = `
                         <div class="empty-state">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="11" cy="11" r="8"></circle>
-                                <line x1="7" y1="7" x2="15" y2="15"></line>
-                                <line x1="15" y1="7" x2="7" y2="15"></line>
-                            </svg>
-                            <p>找不到「${escapeHtml(input)}」的相關資料</p>
+                            <p>找不到「${escapeHtml(input)}」</p>
+                            <p style="font-size: 13px; margin-top: 10px;">請確認書名或編號是否正確，或先使用「單一/批量位置更新」功能建立對應關係</p>
                         </div>
                     `;
                     showStatus('查無資料', 'error');
                 } else {
                     throw new Error(data.error || '未知錯誤');
                 }
-                
             } catch (error) {
-                console.error('查詢錯誤:', error);
-                resultsDiv.innerHTML = `
-                    <div class="empty-state">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <line x1="12" y1="8" x2="12" y2="12"></line>
-                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                        </svg>
-                        <p>查詢失敗: ${escapeHtml(error.message)}</p>
-                    </div>
-                `;
-                showStatus('查詢失敗: ' + error.message, 'error');
+                resultsDiv.innerHTML = `<div class="empty-state"><p>查詢失敗：${escapeHtml(error.message)}</p></div>`;
+                showStatus('查詢失敗：' + error.message, 'error');
             } finally {
                 btn.disabled = false;
                 btn.textContent = '🔍 查詢';
             }
         }
         
-        // JSONP 請求封裝
-        function fetchJSONP(url, callbackName) {
+        function displayResults(data) {
+            const book = data.bookInfo;
+            const libs = data.libraries;
+            
+            let html = `
+                <div class="book-info">
+                    <h2>📖 ${escapeHtml(book.title) || '未知書名'}</h2>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">館藏編目號碼</span>
+                            <span class="info-value">${escapeHtml(book.catalogNo) || '-'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">索書號</span>
+                            <span class="info-value">${escapeHtml(book.callNo) || '-'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">著者</span>
+                            <span class="info-value">${escapeHtml(book.author) || '-'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">出版年份</span>
+                            <span class="info-value">${escapeHtml(book.pubYear) || '-'}</span>
+                        </div>
+                        ${book.series ? `
+                        <div class="info-item" style="grid-column: 1 / -1;">
+                            <span class="info-label">叢書名</span>
+                            <span class="info-value">${escapeHtml(book.series)}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            
+            if (libs && libs.list && libs.list.length > 0) {
+                html += `
+                    <div class="libraries-section">
+                        <div class="section-header">
+                            <div>
+                                <span class="section-title">🏛️ 圖書館館藏</span>
+                                <span class="badge badge-primary" style="margin-left: 10px;">
+                                    顯示 ${libs.displayed} / ${libs.total} 間
+                                </span>
+                                ${data.fromCache ? '<span class="badge badge-success" style="margin-left: 5px;">快取</span>' : ''}
+                            </div>
+                        </div>
+                `;
+                
+                if (libs.hasMore) {
+                    html += `<div style="margin-bottom: 15px; color: #666; font-size: 13px; background: #fff3cd; padding: 8px 12px; border-radius: 6px;">
+                        ⚠️ 還有 ${libs.total - libs.displayed} 間圖書館未顯示，請在上方「顯示設定」增加數量
+                    </div>`;
+                }
+                
+                html += `<div style="overflow-x: auto;"><table>
+                    <thead>
+                        <tr>
+                            <th>圖書館</th>
+                            <th>索書號</th>
+                            <th>期次</th>
+                            <th>媒體碼</th>
+                            <th>館藏現況</th>
+                            <th>館藏</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+                
+                libs.list.forEach(lib => {
+                    const statusClass = lib.status && lib.status.includes('可供借出') ? 'status-available' : 'status-unavailable';
+                    html += `
+                        <tr>
+                            <td><strong>${escapeHtml(lib.library)}</strong></td>
+                            <td>${escapeHtml(lib.callNumber)}</td>
+                            <td>${escapeHtml(lib.issue) || '-'}</td>
+                            <td>${escapeHtml(lib.mediaCode) || '-'}</td>
+                            <td class="${statusClass}">${escapeHtml(lib.status) || '-'}</td>
+                            <td>${escapeHtml(lib.collection) || '-'}</td>
+                        </tr>
+                    `;
+                });
+                
+                html += '</tbody></table></div></div>';
+            }
+            
+            document.getElementById('results').innerHTML = html;
+        }
+        
+        function clearResults() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('results').innerHTML = `
+                <div class="empty-state">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.3; margin-bottom: 16px;">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <p>輸入書名或編號開始查詢</p>
+                </div>
+            `;
+            document.getElementById('statusBar').style.display = 'none';
+        }
+        
+        // ================= 工具函數 =================
+        function apiCall(action, params = {}) {
             return new Promise((resolve, reject) => {
+                const callbackName = 'cb_' + Date.now();
                 const script = document.createElement('script');
+                
+                const queryParams = new URLSearchParams({
+                    action: action,
+                    callback: callbackName,
+                    ...params
+                });
+                
+                const url = `${API_URL}?${queryParams.toString()}`;
+                
                 const timeout = setTimeout(() => {
                     cleanup();
                     reject(new Error('請求超時'));
@@ -518,153 +996,21 @@
             });
         }
         
-        // 顯示查詢結果
-        function displayResults(data) {
-            const resultsDiv = document.getElementById('results');
-            const book = data.bookInfo;
-            const libs = data.libraries;
-            
-            let html = '';
-            
-            // 書籍基本資訊
-            html += `
-                <div class="book-info">
-                    <h2>📖 ${escapeHtml(book.title) || '未知書名'}</h2>
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <span class="info-label">館藏編目號碼</span>
-                            <span class="info-value">${escapeHtml(book.catalogNo) || '-'}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">索書號</span>
-                            <span class="info-value">${escapeHtml(book.callNo) || '-'}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">著者</span>
-                            <span class="info-value">${escapeHtml(book.author) || '-'}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">出版者</span>
-                            <span class="info-value">${escapeHtml(book.publisher) || '-'}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">出版年份</span>
-                            <span class="info-value">${escapeHtml(book.pubYear) || '-'}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">出版地</span>
-                            <span class="info-value">${escapeHtml(book.pubLoc) || '-'}</span>
-                        </div>
-                        <div class="info-item" style="grid-column: 1 / -1;">
-                            <span class="info-label">著錄</span>
-                            <span class="info-value">${escapeHtml(book.description) || '-'}</span>
-                        </div>
-                        ${book.series ? `
-                        <div class="info-item" style="grid-column: 1 / -1;">
-                            <span class="info-label">叢書名</span>
-                            <span class="info-value">${escapeHtml(book.series)}</span>
-                        </div>
-                        ` : ''}
-                    </div>
-                </div>
-            `;
-            
-            // 圖書館列表
-            if (libs && libs.list && libs.list.length > 0) {
-                html += `
-                    <div class="libraries-section">
-                        <div class="section-header">
-                            <div>
-                                <span class="section-title">🏛️ 圖書館館藏分佈</span>
-                                <span class="badge badge-primary" style="margin-left: 10px;">
-                                    顯示 ${libs.displayed} / ${libs.total} 間
-                                </span>
-                                ${data.fromCache ? '<span class="badge badge-success" style="margin-left: 5px;">快取</span>' : ''}
-                            </div>
-                        </div>
-                `;
-                
-                if (libs.hasMore) {
-                    html += `<div style="margin-bottom: 15px; color: #666; font-size: 14px;">
-                        ⚠️ 還有 ${libs.total - libs.displayed} 間圖書館未顯示，可增加「顯示數量限制」查看全部
-                    </div>`;
-                }
-                
-                html += `
-                    <div style="overflow-x: auto;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>圖書館</th>
-                                <th>索書號</th>
-                                <th>期次</th>
-                                <th>媒體碼</th>
-                                <th>館藏現況</th>
-                                <th>館藏</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                `;
-                
-                libs.list.forEach(lib => {
-                    const statusClass = lib.status && lib.status.includes('可供借出') ? 'status-available' : 'status-unavailable';
-                    html += `
-                        <tr>
-                            <td><strong>${escapeHtml(lib.library)}</strong></td>
-                            <td>${escapeHtml(lib.callNumber)}</td>
-                            <td>${escapeHtml(lib.issue) || '-'}</td>
-                            <td>${escapeHtml(lib.mediaCode) || '-'}</td>
-                            <td class="${statusClass}">${escapeHtml(lib.status) || '-'}</td>
-                            <td>${escapeHtml(lib.collection) || '-'}</td>
-                        </tr>
-                    `;
-                });
-                
-                html += '</tbody></table></div></div>';
-            } else {
-                html += '<div style="padding: 20px; text-align: center; color: #666;">暫無圖書館館藏資料</div>';
-            }
-            
-            // 除錯資訊（可選）
-            if (data.execId) {
-                html += `
-                    <div class="debug-info">
-                        <div><strong>執行 ID:</strong> ${data.execId}</div>
-                        <div><strong>書籍 ID:</strong> ${data.bookId}</div>
-                        <div><strong>位置:</strong> ${data.location || '未指定'}</div>
-                        <div><strong>耗時:</strong> ${data.elapsedSeconds?.toFixed(3)} 秒</div>
-                        <div><strong>分類建議:</strong> ${data.classification?.suggestedCategory} (${data.classification?.totalCount} 間)</div>
-                    </div>
-                `;
-            }
-            
-            resultsDiv.innerHTML = html;
-        }
-        
-        // 顯示狀態訊息
         function showStatus(message, type) {
-            const statusBar = document.getElementById('statusBar');
-            statusBar.style.display = 'block';
-            statusBar.className = 'status-bar ' + (type === 'error' ? 'error' : type === 'success' ? 'success' : '');
-            statusBar.textContent = message;
+            const bar = document.getElementById('statusBar');
+            bar.className = 'status-bar ' + type;
+            bar.textContent = message;
+            bar.style.display = 'block';
+            
+            if (type === 'success' || type === 'info') {
+                setTimeout(() => {
+                    if (bar.textContent === message) {
+                        bar.style.display = 'none';
+                    }
+                }, 5000);
+            }
         }
         
-        // 清除結果
-        function clearResults() {
-            document.getElementById('searchInput').value = '';
-            document.getElementById('results').innerHTML = `
-                <div class="empty-state">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <path d="m21 21-4.35-4.35"></path>
-                    </svg>
-                    <p>輸入書名或編號開始查詢</p>
-                </div>
-            `;
-            document.getElementById('statusBar').style.display = 'none';
-        }
-        
-        // HTML 跳脫
         function escapeHtml(text) {
             if (!text) return '';
             const div = document.createElement('div');
@@ -672,9 +1018,17 @@
             return div.innerHTML;
         }
         
-        // 支援 Enter 鍵查詢
+        // Enter 鍵支援
         document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') searchBook();
+        });
+        
+        document.getElementById('singleBookKey')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') document.getElementById('singleLocation').focus();
+        });
+        
+        document.getElementById('singleLocation')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') updateSingleLocation();
         });
     </script>
 </body>
