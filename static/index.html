@@ -145,6 +145,15 @@
             overflow-y: auto;
         }
         
+        /* 桌面端顯示sidebar，隱藏手機元素 */
+        .desktop-only {
+            display: flex;
+        }
+        
+        .mobile-only {
+            display: none;
+        }
+        
         .block-title {
             font-size: 20px;
             font-weight: 700;
@@ -766,9 +775,13 @@
                 padding-bottom: 100px; /* 為浮動按鈕留空間 */
             }
             
-            /* 手機端隱藏右側sidebar，改為浮動按鈕 */
-            .search-sidebar {
-                display: none;
+            /* 手機端隱藏桌面sidebar，顯示手機元素 */
+            .desktop-only {
+                display: none !important;
+            }
+            
+            .mobile-only {
+                display: block !important;
             }
             
             /* 手機端浮動按鈕 */
@@ -969,7 +982,7 @@
                 padding-bottom: 40px;
             }
             
-            /* 手機端書目資料正常大小，與圖書館清單一致 */
+            /* 手機端書目資料正常大小 */
             .book-info {
                 transform: none;
                 width: 100%;
@@ -1130,17 +1143,17 @@
                                 </div>
                             </div>
                             
-                            <!-- 手機端浮動按鈕 -->
-                            <div class="fab-container mobile-only" style="display: none;">
+                            <!-- 手機端浮動按鈕（僅手機端顯示） -->
+                            <div class="fab-container mobile-only">
                                 <button class="fab-button" onclick="toggleMobilePanel()">
                                     📋
                                     <span class="fab-badge" id="fabBadge">0</span>
                                 </button>
                             </div>
                             
-                            <!-- 手機端彈出面板 -->
-                            <div class="mobile-panel-overlay" id="mobilePanelOverlay" onclick="toggleMobilePanel()"></div>
-                            <div class="mobile-panel" id="mobilePanel">
+                            <!-- 手機端彈出面板（僅手機端顯示） -->
+                            <div class="mobile-panel-overlay mobile-only" id="mobilePanelOverlay" onclick="toggleMobilePanel()"></div>
+                            <div class="mobile-panel mobile-only" id="mobilePanel">
                                 <div class="mobile-panel-header">
                                     <div class="mobile-panel-title">📋 Manual Select</div>
                                     <button class="mobile-panel-close" onclick="toggleMobilePanel()">×</button>
@@ -1167,7 +1180,7 @@
                             </div>
                         </div>
                         
-                        <!-- 右側：Manual Select（桌面端顯示） -->
+                        <!-- 右側：Manual Select（僅桌面端顯示） -->
                         <div class="search-sidebar desktop-only">
                             <h3>
                                 📋 Manual Select
@@ -1230,7 +1243,7 @@
                                 <input type="text" id="singleLocation" placeholder="新位置（C欄）">
                                 <button class="btn-success" onclick="updateSingleLocation()" style="width: 100%;">更新</button>
                             </div>
-                            <div class="helper-text">請輸入14位數字條碼。按下更新後立即清除輸入欄</div>
+                            <div class="helper-text">請輸入14位數字條碼。按下更新後條碼欄立即清除，位置欄保留供下次使用</div>
                             
                             <div id="singleStatus" class="status-bar" style="margin-top: 15px; display: none;"></div>
                         </div>
@@ -1337,7 +1350,7 @@
             const listDiv = document.getElementById('manualListMobile');
             const fabBadge = document.getElementById('fabBadge');
             
-            fabBadge.textContent = manualSelectData.length;
+            if (fabBadge) fabBadge.textContent = manualSelectData.length;
             
             if (manualSelectData.length === 0) {
                 listDiv.innerHTML = '<div class="empty-list">暫無項目<br>在下方輸入添加</div>';
@@ -1367,6 +1380,7 @@
         
         document.addEventListener('DOMContentLoaded', function() {
             loadManualSelect();
+            // 初始化時根據螢幕大小顯示對應UI
             updateMobileUI();
             
             // 監聽視窗大小變化
@@ -1374,19 +1388,9 @@
         });
         
         function updateMobileUI() {
-            const fabContainer = document.querySelector('.fab-container');
-            const desktopSidebar = document.querySelector('.search-sidebar');
-            
+            // CSS已經處理了顯示/隱藏，這裡只需確保手機端列表已渲染
             if (isMobile()) {
-                fabContainer.style.display = 'block';
-                desktopSidebar.style.display = 'none';
-            } else {
-                fabContainer.style.display = 'none';
-                desktopSidebar.style.display = 'flex';
-                // 關閉手機面板
-                document.getElementById('mobilePanelOverlay').classList.remove('active');
-                document.getElementById('mobilePanel').classList.remove('active');
-                document.body.style.overflow = '';
+                renderManualListMobile();
             }
         }
         
@@ -1475,10 +1479,10 @@
             const bookKey = document.getElementById('singleBookKey').value.trim();
             const location = document.getElementById('singleLocation').value.trim();
             
-            // 立即清除輸入欄（不等API回應）
+            // 立即清除條碼欄，保留位置欄（保留值功能）
             document.getElementById('singleBookKey').value = '';
-            document.getElementById('singleLocation').value = '';
             document.getElementById('singleBookKey').focus();
+            // 注意：不清除 singleLocation，保留供下次使用
             
             // 驗證
             const barcodeRegex = /^\d{14}$/;
@@ -1663,7 +1667,7 @@
             const listDiv = document.getElementById('manualList');
             const countSpan = document.getElementById('manualCount');
             
-            countSpan.textContent = `(${manualSelectData.length})`;
+            if (countSpan) countSpan.textContent = `(${manualSelectData.length})`;
             
             if (manualSelectData.length === 0) {
                 listDiv.innerHTML = '<div class="empty-list">暫無項目<br>在下方輸入添加</div>';
