@@ -1250,11 +1250,11 @@
                                 更新書目位置
                             </div>
                             <div class="input-group" style="flex-direction: column; gap: 15px;">
-                                <input type="text" id="singleBookKey" placeholder="14位數條碼（RawData A欄）" maxlength="14" inputmode="numeric">
-                                <input type="text" id="singleLocation" placeholder="新位置（C欄）">
+                                <input type="text" id="singleBookKey" placeholder="14位數條碼" maxlength="14" inputmode="numeric">
+                                <input type="text" id="singleLocation" placeholder="新位置">
                                 <button class="btn-success" onclick="updateSingleLocation()" style="width: 100%;">更新</button>
                             </div>
-                            <div class="helper-text">請輸入14位數字條碼。按下更新後條碼欄立即清除，位置欄保留供下次使用</div>
+                            <div class="helper-text">請輸入14位數字條碼。按下更新後請留意下方更新日誌, 以確認更新成功。</div>
                         </div>
                         
                         <!-- 日誌區域 -->
@@ -1280,15 +1280,15 @@
                                 批量更新書目位置
                             </div>
                             <div class="batch-default-location">
-                                <label style="font-size: 14px; color: #856404; font-weight: 600; display: block; margin-bottom: 8px;">預設位置（當下方未指定位置時使用）：</label>
-                                <input type="text" id="batchDefaultLocation" placeholder="輸入預設位置..." style="border-color: #ffeaa7;">
+                                <label style="font-size: 14px; color: #856404; font-weight: 600; display: block; margin-bottom: 8px;">請輸入批量更新位置</label>
+                                <input type="text" id="batchDefaultLocation" placeholder="輸入新位置..." style="border-color: #ffeaa7;">
                             </div>
-                            <textarea id="batchData" placeholder="格式：條碼,位置 或 僅條碼（使用上方預設位置）&#10;每行只取前14個字元&#10;例如：&#10;9789861234567,3F-A區&#10;9789861234568&#10;9789861234569,2F-C區"></textarea>
+                            <textarea id="batchData" placeholder="格式：14位純數字條碼, 須以Enter分隔 &#10;每行只取前14個字元&#10;例如：&#10;9789861234567 3F-A區 只取9789861234567"></textarea>
                             <div class="batch-actions">
                                 <button class="btn-warning" onclick="clearBatchData()">🗑️ 清空全部</button>
                                 <button class="btn-primary" onclick="submitBatchUpdate()" id="batchUpdateBtn">確認批量更新</button>
                             </div>
-                            <div class="helper-text">直接執行更新，無須確認。每行只取前14位字元處理。失敗項目會記錄到 Error 工作表</div>
+                            <div class="helper-text">直接執行更新，無須確認。每行只取前14位字元處理。失敗項目會記錄到 Error 列表</div>
                             <div id="batchStatus" class="status-bar" style="margin-top: 15px; display: none;"></div>
                         </div>
                     </div>
@@ -1884,9 +1884,12 @@
             
             let html = bookInfoHtml;
             
+            // 修正：只有當總數大於顯示數量時才顯示 "(顯示前 X 筆)"
+            const displayHint = libs.total > libs.displayed ? ` (顯示前 ${libs.displayed} 筆)` : '';
+            
             html += `
                 <div class="library-summary">
-                    <span>📚 可選圖書館：${libs.total} 間 (顯示前 ${libs.displayed} 筆)</span>
+                    <span>📚 可選圖書館：${libs.total} 間${displayHint}</span>
                     ${rawLocation ? `<span class="location-badge">位置: ${escapeHtml(rawLocation)}</span>` : '<span class="location-badge">無位置資料</span>'}
                 </div>
             `;
