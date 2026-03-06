@@ -775,9 +775,14 @@
                 padding-bottom: 100px; /* 為浮動按鈕留空間 */
             }
             
-            /* 手機端隱藏桌面sidebar */
+            /* 手機端隱藏桌面sidebar - 嚴格隱藏防止重複顯示 */
             .desktop-only {
                 display: none !important;
+                visibility: hidden !important;
+                opacity: 0 !important;
+                pointer-events: none !important;
+                position: absolute !important;
+                z-index: -9999 !important;
             }
             
             /* 手機端顯示浮動按鈕 */
@@ -785,19 +790,22 @@
                 display: block !important;
             }
             
-            /* 手機端隱藏面板和遮罩層（預設狀態）- 重要修復 */
+            /* 手機端面板和遮罩層默認隱藏 - 確保不會出現在網頁下半部 */
             .mobile-panel-overlay,
             .mobile-panel {
                 display: none !important;
+                visibility: hidden !important;
             }
             
-            /* 當有active class時顯示（僅遮罩層和面板） */
+            /* 當有active class時顯示 */
             .mobile-panel-overlay.active {
                 display: block !important;
+                visibility: visible !important;
             }
             
             .mobile-panel.active {
                 display: flex !important;
+                visibility: visible !important;
             }
             
             /* 手機端浮動按鈕 */
@@ -1157,8 +1165,8 @@
                             </div>
                             
                             <!-- 手機端彈出面板 -->
-                            <div class="mobile-panel-overlay" id="mobilePanelOverlay" onclick="toggleMobilePanel()"></div>
-                            <div class="mobile-panel" id="mobilePanel">
+                            <div class="mobile-panel-overlay" id="mobilePanelOverlay" onclick="toggleMobilePanel()" style="display: none; visibility: hidden;"></div>
+                            <div class="mobile-panel" id="mobilePanel" style="display: none; visibility: hidden;">
                                 <div class="mobile-panel-header">
                                     <div class="mobile-panel-title">📋 Manual Select</div>
                                     <button class="mobile-panel-close" onclick="toggleMobilePanel()">×</button>
@@ -1291,7 +1299,7 @@
     </div>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbzl-HifsUB1oZqmtQPLjG0fYCrxZQYTiEWTC5UzftyAhKTj_Ns3BpqavhGFjaHMrRAi/exec';
+        const API_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec  ';
         let currentDisplayLimit = 100;
         let manualSelectData = [];
         let updateLogs = [];
@@ -1376,10 +1384,30 @@
         function updateMobileUI() {
             if (isMobile()) {
                 renderManualListMobile();
+            } else {
+                // 桌面端確保手機面板關閉
+                const overlay = document.getElementById('mobilePanelOverlay');
+                const panel = document.getElementById('mobilePanel');
+                if (overlay && panel) {
+                    overlay.classList.remove('active');
+                    panel.classList.remove('active');
+                }
+                document.body.style.overflow = '';
             }
         }
         
         function switchPanel(panelName) {
+            // 切換面板時關閉手機端 Manual Select 面板
+            if (panelName !== 'search') {
+                const overlay = document.getElementById('mobilePanelOverlay');
+                const panel = document.getElementById('mobilePanel');
+                if (overlay && panel) {
+                    overlay.classList.remove('active');
+                    panel.classList.remove('active');
+                }
+                document.body.style.overflow = '';
+            }
+            
             document.querySelectorAll('.function-block').forEach(block => {
                 block.classList.remove('active');
             });
@@ -1641,13 +1669,18 @@
                     renderManualListMobile();
                 }
             } catch (e) {
-                document.getElementById('manualList').innerHTML = '<div class="empty-list">載入失敗</div>';
+                const manualList = document.getElementById('manualList');
+                if (manualList) {
+                    manualList.innerHTML = '<div class="empty-list">載入失敗</div>';
+                }
             }
         }
         
         function renderManualList() {
             const listDiv = document.getElementById('manualList');
             const countSpan = document.getElementById('manualCount');
+            
+            if (!listDiv) return; // 如果元素不存在（手機端）則跳過
             
             if (countSpan) countSpan.textContent = `(${manualSelectData.length})`;
             
