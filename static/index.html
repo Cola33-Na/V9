@@ -1250,11 +1250,12 @@
                                 更新書目位置
                             </div>
                             <div class="input-group" style="flex-direction: column; gap: 15px;">
-                                <input type="text" id="singleBookKey" placeholder="14位數條碼" maxlength="14" inputmode="numeric">
+                                <!-- 順序：新位置欄位在前，14位數條碼在後 -->
                                 <input type="text" id="singleLocation" placeholder="新位置">
+                                <input type="text" id="singleBookKey" placeholder="14位數條碼" maxlength="14" inputmode="numeric">
                                 <button class="btn-success" onclick="updateSingleLocation()" id="singleUpdateBtn" style="width: 100%;">更新</button>
                             </div>
-                            <div class="helper-text">請輸入14位數字條碼。按下更新後請留意下方更新日誌。</div>
+                            <div class="helper-text">請輸入新位置及14位數字條碼。按下更新後請留意下方更新日誌。</div>
                         </div>
                         
                         <!-- 日誌區域 -->
@@ -1380,16 +1381,16 @@
             updateMobileUI();
             window.addEventListener('resize', updateMobileUI);
             
-            // 單一位置更新：監聽 Enter 鍵（條碼欄位）
-            document.getElementById('singleBookKey')?.addEventListener('keypress', function(e) {
+            // 單一位置更新：新位置欄位按 Enter 跳至 14位數條碼欄位
+            document.getElementById('singleLocation')?.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
-                    document.getElementById('singleLocation').focus();
+                    document.getElementById('singleBookKey').focus();
                 }
             });
             
-            // 單一位置更新：監聽 Enter 鍵（位置欄位）
-            document.getElementById('singleLocation')?.addEventListener('keypress', function(e) {
+            // 單一位置更新：14位數條碼欄位按 Enter 直接執行更新
+            document.getElementById('singleBookKey')?.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     updateSingleLocation();
@@ -1451,6 +1452,7 @@
             if (panelName === 'search') {
                 setTimeout(() => document.getElementById('searchInput')?.focus(), 100);
             } else if (panelName === 'single') {
+                // 切換到單一位置更新頁面時，聚焦到14位數條碼欄位（第2個欄位）
                 setTimeout(() => document.getElementById('singleBookKey')?.focus(), 100);
             }
         }
