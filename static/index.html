@@ -1250,7 +1250,7 @@
                                 更新書目位置
                             </div>
                             <div class="input-group" style="flex-direction: column; gap: 15px;">
-                                <!-- 順序：新位置欄位在前，14位數條碼在後 -->
+                                <!-- 修改順序：新位置欄位在前，14位數條碼在後 -->
                                 <input type="text" id="singleLocation" placeholder="新位置">
                                 <input type="text" id="singleBookKey" placeholder="14位數條碼" maxlength="14" inputmode="numeric">
                                 <button class="btn-success" onclick="updateSingleLocation()" id="singleUpdateBtn" style="width: 100%;">更新</button>
@@ -1381,7 +1381,8 @@
             updateMobileUI();
             window.addEventListener('resize', updateMobileUI);
             
-            // 單一位置更新：新位置欄位按 Enter 跳至 14位數條碼欄位
+            // 修改：單一位置更新 Enter 鍵導航邏輯
+            // 新位置欄位按 Enter 跳至 14位數條碼欄位
             document.getElementById('singleLocation')?.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
@@ -1389,7 +1390,7 @@
                 }
             });
             
-            // 單一位置更新：14位數條碼欄位按 Enter 直接執行更新
+            // 14位數條碼欄位按 Enter 直接執行更新
             document.getElementById('singleBookKey')?.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
@@ -1452,8 +1453,8 @@
             if (panelName === 'search') {
                 setTimeout(() => document.getElementById('searchInput')?.focus(), 100);
             } else if (panelName === 'single') {
-                // 切換到單一位置更新頁面時，聚焦到14位數條碼欄位（第2個欄位）
-                setTimeout(() => document.getElementById('singleBookKey')?.focus(), 100);
+                // 修改：切換到單一位置更新頁面時，聚焦到新位置欄位（第一個欄位）
+                setTimeout(() => document.getElementById('singleLocation')?.focus(), 100);
             }
         }
         
