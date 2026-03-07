@@ -1183,7 +1183,7 @@
                                     
                                     <div class="manual-actions">
                                         <button class="btn-danger btn-sm" onclick="clearManualSelect()">清空全部</button>
-                                        <button class="btn-secondary btn-sm" onclick="removeLastManual()">移除最後</button>
+                                        <button class="btn-secondary btn-sm" onclick="removeLastManual()">移除最後一筆資料</button>
                                     </div>
                                     
                                     <button class="btn-info btn-sm export-btn" onclick="exportManualSelect()" style="margin-top: 10px;">
@@ -1211,7 +1211,7 @@
                             
                             <div class="manual-actions">
                                 <button class="btn-danger btn-sm" onclick="clearManualSelect()">清空全部</button>
-                                <button class="btn-secondary btn-sm" onclick="removeLastManual()">移除最後</button>
+                                <button class="btn-secondary btn-sm" onclick="removeLastManual()">移除最後一筆資料</button>
                             </div>
                             
                             <button class="btn-info btn-sm export-btn" onclick="exportManualSelect()">
@@ -1252,9 +1252,9 @@
                             <div class="input-group" style="flex-direction: column; gap: 15px;">
                                 <input type="text" id="singleBookKey" placeholder="14位數條碼" maxlength="14" inputmode="numeric">
                                 <input type="text" id="singleLocation" placeholder="新位置">
-                                <button class="btn-success" onclick="updateSingleLocation()" style="width: 100%;">更新</button>
+                                <button class="btn-success" onclick="updateSingleLocation()" id="singleUpdateBtn" style="width: 100%;">更新</button>
                             </div>
-                            <div class="helper-text">請輸入14位數字條碼。按下更新後請留意下方更新日誌, 以確認更新成功。</div>
+                            <div class="helper-text">請輸入14位數字條碼。按下更新後請留意下方更新日誌。</div>
                         </div>
                         
                         <!-- 日誌區域 -->
@@ -1280,10 +1280,10 @@
                                 批量更新書目位置
                             </div>
                             <div class="batch-default-location">
-                                <label style="font-size: 14px; color: #856404; font-weight: 600; display: block; margin-bottom: 8px;">請輸入批量更新位置</label>
-                                <input type="text" id="batchDefaultLocation" placeholder="輸入新位置..." style="border-color: #ffeaa7;">
+                                <label style="font-size: 14px; color: #856404; font-weight: 600; display: block; margin-bottom: 8px;">預設新位置：</label>
+                                <input type="text" id="batchDefaultLocation" placeholder="輸入新位置（如：3F-A區）..." style="border-color: #ffeaa7;">
                             </div>
-                            <textarea id="batchData" placeholder="格式：14位純數字條碼, 須以Enter分隔 &#10;每行只取前14個字元&#10;例如：&#10;12345678912345 3F-A區 只取12345678912345"></textarea>
+                            <textarea id="batchData" placeholder="格式：14位純數字條碼（每行一筆，位置可選）&#10;系統會自動套用上方預設位置&#10;範例：&#10;12345678901234&#10;12345678901235&#10;12345678901236,特殊位置"></textarea>
                             <div class="batch-actions">
                                 <button class="btn-warning" onclick="clearBatchData()">🗑️ 清空全部</button>
                                 <button class="btn-primary" onclick="submitBatchUpdate()" id="batchUpdateBtn">確認批量更新</button>
@@ -1379,13 +1379,40 @@
             loadManualSelect();
             updateMobileUI();
             window.addEventListener('resize', updateMobileUI);
+            
+            // 單一位置更新：監聽 Enter 鍵（條碼欄位）
+            document.getElementById('singleBookKey')?.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    document.getElementById('singleLocation').focus();
+                }
+            });
+            
+            // 單一位置更新：監聽 Enter 鍵（位置欄位）
+            document.getElementById('singleLocation')?.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    updateSingleLocation();
+                }
+            });
+            
+            document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') searchBook();
+            });
+            
+            document.getElementById('searchInput')?.addEventListener('input', function(e) {
+                this.value = this.value.replace(/[^\d]/g, '').slice(0, 14);
+            });
+            
+            document.getElementById('singleBookKey')?.addEventListener('input', function(e) {
+                this.value = this.value.replace(/[^\d]/g, '').slice(0, 14);
+            });
         });
         
         function updateMobileUI() {
             if (isMobile()) {
                 renderManualListMobile();
             } else {
-                // 桌面端確保手機面板關閉
                 const overlay = document.getElementById('mobilePanelOverlay');
                 const panel = document.getElementById('mobilePanel');
                 if (overlay && panel) {
@@ -1397,7 +1424,6 @@
         }
         
         function switchPanel(panelName) {
-            // 切換面板時關閉手機端 Manual Select 面板
             if (panelName !== 'search') {
                 const overlay = document.getElementById('mobilePanelOverlay');
                 const panel = document.getElementById('mobilePanel');
@@ -1507,7 +1533,7 @@
                 });
                 
                 if (data.success) {
-                    addLog(`✅ ${bookKey} → ${location}（第${data.row}行）`, 'success');
+                    addLog(`✅ ${bookKey} → ${location}`, 'success');
                 } else {
                     addLog(`❌ ${bookKey}：${data.error}`, 'error');
                 }
@@ -1680,7 +1706,7 @@
             const listDiv = document.getElementById('manualList');
             const countSpan = document.getElementById('manualCount');
             
-            if (!listDiv) return; // 如果元素不存在（手機端）則跳過
+            if (!listDiv) return;
             
             if (countSpan) countSpan.textContent = `(${manualSelectData.length})`;
             
@@ -1720,9 +1746,8 @@
             }
         }
         
-        async function removeManualItem(value, index, skipConfirm = false) {
-            // 如果 skipConfirm 為 false（預設），則顯示確認對話框
-            if (!skipConfirm && !confirm('確定移除「' + value + '」？')) return;
+        async function removeManualItem(value, index) {
+            if (!confirm('確定移除「' + value + '」？')) return;
             
             manualSelectData.splice(index, 1);
             renderManualList();
@@ -1738,8 +1763,17 @@
         async function removeLastManual() {
             if (manualSelectData.length === 0) return;
             const lastItem = manualSelectData[manualSelectData.length - 1];
-            // 傳入 true 作為第三個參數，跳過確認對話框
-            await removeManualItem(lastItem, manualSelectData.length - 1, true);
+            
+            // 直接移除，不顯示確認對話框
+            manualSelectData.pop();
+            renderManualList();
+            renderManualListMobile();
+            
+            try {
+                await apiCall('removeFromManualSelect', { value: lastItem });
+            } catch (e) {
+                console.error('背景同步失敗:', e);
+            }
         }
         
         async function clearManualSelect() {
@@ -1863,6 +1897,7 @@
                 { num: 9, key: 'series', label: '叢書名' }
             ];
             
+            // 生成書目資料 HTML
             let bookInfoHtml = `
                 <div class="book-info">
                     <h2>📖 書目資料</h2>
@@ -1884,18 +1919,20 @@
             
             bookInfoHtml += '</div></div>';
             
-            let html = bookInfoHtml;
-            
-            // 修正：只有當總數大於顯示數量時才顯示 "(顯示前 X 筆)"
+            // 生成圖書館摘要 HTML（移到最前面）
             const displayHint = libs.total > libs.displayed ? ` (顯示前 ${libs.displayed} 筆)` : '';
             
-            html += `
+            let librarySummaryHtml = `
                 <div class="library-summary">
                     <span>📚 可選圖書館：${libs.total} 間${displayHint}</span>
                     ${rawLocation ? `<span class="location-badge">位置: ${escapeHtml(rawLocation)}</span>` : '<span class="location-badge">無位置資料</span>'}
                 </div>
             `;
             
+            // 調整順序：先顯示圖書館摘要，再顯示書目資料
+            let html = librarySummaryHtml + bookInfoHtml;
+            
+            // 圖書館列表
             if (libs && libs.list && libs.list.length > 0) {
                 html += `
                     <div class="libraries-section">
@@ -1961,26 +1998,6 @@
             div.textContent = text;
             return div.innerHTML;
         }
-        
-        document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') searchBook();
-        });
-        
-        document.getElementById('singleBookKey')?.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') document.getElementById('singleLocation').focus();
-        });
-        
-        document.getElementById('singleLocation')?.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') updateSingleLocation();
-        });
-        
-        document.getElementById('searchInput')?.addEventListener('input', function(e) {
-            this.value = this.value.replace(/[^\d]/g, '').slice(0, 14);
-        });
-        
-        document.getElementById('singleBookKey')?.addEventListener('input', function(e) {
-            this.value = this.value.replace(/[^\d]/g, '').slice(0, 14);
-        });
     </script>
 </body>
 </html>
