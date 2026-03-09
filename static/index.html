@@ -872,6 +872,7 @@
         .error-list-actions {
             display: flex;
             gap: 8px;
+            align-items: center;
         }
         
         .error-list-content {
@@ -1457,6 +1458,7 @@
                                 <span>⚠️ AddNewAddressErr 錯誤記錄</span>
                                 <div class="error-list-actions">
                                     <span class="badge badge-danger" id="errorCountBadge">0 筆</span>
+                                    <button class="btn-sm btn-info" onclick="exportErrorList()">📥 匯出錯誤</button>
                                     <button class="btn-sm btn-danger" onclick="clearErrorList()" id="clearErrBtn">🗑️ 清空記錄</button>
                                 </div>
                             </div>
@@ -1472,7 +1474,7 @@
     </div>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbzl-HifsUB1oZqmtQPLjG0fYCrxZQYTiEWTC5UzftyAhKTj_Ns3BpqavhGFjaHMrRAi/exec';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzl-HifsUB1oZqmtQPLjG0fYCrxZQYTiEWTC5UzftyAhKTj_Ns3BpqavhGFjaHMrRAi/exec ';
         let currentDisplayLimit = 100;
         let manualSelectData = [];
         let updateLogs = [];
@@ -1480,6 +1482,7 @@
         let currentPanel = 'search';
         let statusCheckInterval = null;
         let currentBatchId = null;
+        let currentErrorList = []; // 存儲當前錯誤列表數據供匯出使用
         
         function isMobile() {
             return window.innerWidth <= 968;
@@ -1812,10 +1815,7 @@
         }
         
         async function clearErrorList() {
-            if (!confirm('確定要清空 AddNewAddressErr 的所有錯誤記錄嗎？此操作無法復原。')) {
-                return;
-            }
-            
+            // 移除確認對話框，直接執行清空
             const btn = document.getElementById('clearErrBtn');
             btn.disabled = true;
             btn.textContent = '清空中...';
@@ -1826,6 +1826,7 @@
                 if (data.success) {
                     showStatus('batch', `✅ 已清空 ${data.clearedRows} 筆錯誤記錄`, 'success');
                     hideErrorList();
+                    currentErrorList = []; // 清空全局變量
                     checkBatchStatus(true);
                 } else {
                     showStatus('batch', '❌ 清空失敗：' + data.error, 'error');
@@ -1836,6 +1837,36 @@
                 btn.disabled = false;
                 btn.textContent = '🗑️ 清空記錄';
             }
+        }
+        
+        // 匯出錯誤列表功能
+        function exportErrorList() {
+            if (!currentErrorList || currentErrorList.length === 0) {
+                alert('沒有可匯出的錯誤記錄');
+                return;
+            }
+            
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+            csvContent += "條碼,位置,錯誤原因\n";
+            
+            currentErrorList.forEach(row => {
+                const barcode = row[0] || '';
+                const location = row[1] || '';
+                const reason = row[2] || '';
+                // CSV 轉義處理：將雙引號替換為兩個雙引號
+                const escapedBarcode = barcode.toString().replace(/"/g, '""');
+                const escapedLocation = location.toString().replace(/"/g, '""');
+                const escapedReason = reason.toString().replace(/"/g, '""');
+                csvContent += `"${escapedBarcode}","${escapedLocation}","${escapedReason}"\n`;
+            });
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "error_list_" + new Date().toISOString().slice(0,10) + ".csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
         
         async function loadErrorList() {
@@ -1855,6 +1886,8 @@
         }
         
         function displayErrorList(errors) {
+            currentErrorList = errors; // 保存到全局變量以便匯出使用
+            
             const container = document.getElementById('errorListContainer');
             const content = document.getElementById('errorListContent');
             const badge = document.getElementById('errorCountBadge');
