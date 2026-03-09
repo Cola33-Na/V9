@@ -412,6 +412,12 @@
             display: block;
         }
         
+        .status-bar.warning {
+            background: #fff3cd;
+            color: #856404;
+            display: block;
+        }
+        
         /* 可選圖書館及位置 */
         .library-summary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -601,6 +607,16 @@
             color: #2e7d32;
         }
         
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
         .table-container {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
@@ -765,6 +781,128 @@
             padding: 30px;
             color: #adb5bd;
             font-size: 14px;
+        }
+        
+        /* 批量更新專用樣式 */
+        .batch-status-panel {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 2px solid #dee2e6;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .batch-status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        .status-dot.processing {
+            background: #ffc107;
+            box-shadow: 0 0 0 rgba(255, 193, 7, 0.4);
+        }
+        
+        .status-dot.idle {
+            background: #28a745;
+            animation: none;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 193, 7, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0); }
+        }
+        
+        .batch-status-text {
+            color: #495057;
+        }
+        
+        .batch-status-text.processing {
+            color: #856404;
+        }
+        
+        .batch-status-text.idle {
+            color: #155724;
+        }
+        
+        .error-list-container {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #f5c6cb;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        
+        .error-list-header {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .error-list-content {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        
+        .error-item {
+            padding: 10px;
+            border-bottom: 1px solid #f1f1f1;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .error-item:last-child {
+            border-bottom: none;
+        }
+        
+        .error-barcode {
+            font-family: monospace;
+            font-weight: 600;
+            color: #dc3545;
+        }
+        
+        .error-reason {
+            color: #6c757d;
+            font-size: 12px;
+        }
+        
+        .auto-refresh-indicator {
+            font-size: 12px;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .refresh-icon {
+            animation: rotate 2s linear infinite;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
         
         /* 其他功能頁面樣式 */
@@ -1076,6 +1214,12 @@
                 font-size: 24px;
             }
             
+            /* 手機端批量狀態面板調整 */
+            .batch-status-panel {
+                flex-direction: column;
+                text-align: center;
+            }
+            
             /* 手機端：調整結果區域順序，圖書館資訊在上 */
             #results {
                 display: flex;
@@ -1287,10 +1431,9 @@
                     </div>
                 </div>
                 
-                <!-- 2) 查詢位置功能區（新增） -->
+                <!-- 2) 查詢位置功能區 -->
                 <div id="panel-location" class="function-block">
                     <div class="search-layout">
-                        <!-- 左側：查詢內容 -->
                         <div class="search-main">
                             <div class="block-title">📍 查詢位置</div>
                             
@@ -1318,45 +1461,8 @@
                                     </div>
                                 </div>
                             </div>
-                            
-                            <!-- 手機端浮動按鈕（與圖書查詢共用 Manual Select） -->
-                            <div class="fab-container mobile-only">
-                                <button class="fab-button" onclick="toggleMobilePanel()">
-                                    📋
-                                    <span class="fab-badge" id="fabBadgeLocation">0</span>
-                                </button>
-                            </div>
-                            
-                            <!-- 手機端彈出面板（與圖書查詢共用） -->
-                            <div class="mobile-panel-overlay" id="mobilePanelOverlayLocation" onclick="toggleMobilePanel()" style="display: none; visibility: hidden;"></div>
-                            <div class="mobile-panel" id="mobilePanelLocation" style="display: none; visibility: hidden;">
-                                <div class="mobile-panel-header">
-                                    <div class="mobile-panel-title">📋 Manual Select</div>
-                                    <button class="mobile-panel-close" onclick="toggleMobilePanel()">×</button>
-                                </div>
-                                <div class="mobile-panel-content">
-                                    <div class="manual-list-mobile" id="manualListMobileLocation">
-                                        <div class="empty-list">暫無項目</div>
-                                    </div>
-                                    
-                                    <div class="manual-input-group">
-                                        <input type="text" id="newManualItemMobileLocation" placeholder="加入新項目..." onkeypress="if(event.key==='Enter') addManualItemFromMobile()">
-                                        <button class="btn-success btn-sm" onclick="addManualItemFromMobile()">+</button>
-                                    </div>
-                                    
-                                    <div class="manual-actions">
-                                        <button class="btn-danger btn-sm" onclick="clearManualSelect()">清空全部</button>
-                                        <button class="btn-secondary btn-sm" onclick="removeLastManual()">移除最後一筆資料</button>
-                                    </div>
-                                    
-                                    <button class="btn-info btn-sm export-btn" onclick="exportManualSelect()" style="margin-top: 10px;">
-                                        📥 匯出清單 (CSV)
-                                    </button>
-                                </div>
-                            </div>
                         </div>
                         
-                        <!-- 右側：Manual Select（桌面端） -->
                         <div class="search-sidebar desktop-only">
                             <h3>
                                 📋 Manual Select
@@ -1413,7 +1519,6 @@
                                 更新書目位置
                             </div>
                             <div class="input-group" style="flex-direction: column; gap: 15px;">
-                                <!-- 順序：新位置欄位在前，14位數條碼在後 -->
                                 <input type="text" id="singleLocation" placeholder="新位置">
                                 <input type="text" id="singleBookKey" placeholder="14位數條碼" maxlength="14" inputmode="numeric">
                                 <button class="btn-success" onclick="updateSingleLocation()" id="singleUpdateBtn" style="width: 100%;">更新</button>
@@ -1421,7 +1526,6 @@
                             <div class="helper-text">請輸入新位置及14位數字條碼。按下更新後請留意下方更新日誌。</div>
                         </div>
                         
-                        <!-- 日誌區域 -->
                         <div class="log-container">
                             <div class="log-header">
                                 <span>📋 最近更新日誌（最近50筆）</span>
@@ -1434,10 +1538,24 @@
                     </div>
                 </div>
                 
-                <!-- 5) 批量位置更新功能區 -->
+                <!-- 5) 批量位置更新功能區（已強化） -->
                 <div id="panel-batch" class="function-block">
                     <div class="panel-content">
                         <div class="block-title">📋 批量位置更新</div>
+                        
+                        <!-- 狀態監控面板（新增） -->
+                        <div class="batch-status-panel" id="batchStatusPanel">
+                            <div class="batch-status-indicator">
+                                <div class="status-dot idle" id="statusDot"></div>
+                                <span class="batch-status-text idle" id="statusText">系統狀態：空閒中</span>
+                            </div>
+                            <div class="auto-refresh-indicator">
+                                <span class="refresh-icon" id="refreshIcon">🔄</span>
+                                <span id="lastUpdateTime">最後更新：--</span>
+                            </div>
+                            <button class="btn-sm btn-secondary" onclick="checkBatchStatus(true)">🔄 立即刷新</button>
+                        </div>
+                        
                         <div class="control-box">
                             <div class="control-title" style="margin-bottom: 15px; font-size: 16px;">
                                 <span style="background: #667eea; color: white; width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; margin-right: 8px;">3</span>
@@ -1450,10 +1568,24 @@
                             <textarea id="batchData" placeholder="格式：14位純數字條碼（每行一筆，位置可選）&#10;系統會自動套用上方預設位置&#10;範例：&#10;12345678901234&#10;12345678901235&#10;12345678901236,特殊位置"></textarea>
                             <div class="batch-actions">
                                 <button class="btn-warning" onclick="clearBatchData()">🗑️ 清空全部</button>
-                                <button class="btn-primary" onclick="submitBatchUpdate()" id="batchUpdateBtn">確認批量更新</button>
+                                <button class="btn-primary" onclick="submitBatchUpdateAsync()" id="batchUpdateBtn">確認批量更新（異步）</button>
                             </div>
-                            <div class="helper-text">直接執行更新，無須確認。每行只取前14位字元處理。失敗項目會記錄到 Error 列表</div>
+                            <div class="helper-text">
+                                💡 提示：提交後立即返回，背景處理中。可透過上方狀態面板查看進度。<br>
+                                系統每10秒自動檢查狀態，您也可以手動點擊刷新。
+                            </div>
                             <div id="batchStatus" class="status-bar" style="margin-top: 15px; display: none;"></div>
+                        </div>
+                        
+                        <!-- 錯誤列表顯示（新增） -->
+                        <div class="error-list-container" id="errorListContainer" style="display: none;">
+                            <div class="error-list-header">
+                                <span>⚠️ AddNewAddressErr 錯誤記錄</span>
+                                <span class="badge badge-danger" id="errorCountBadge">0 筆</span>
+                            </div>
+                            <div class="error-list-content" id="errorListContent">
+                                <div class="empty-list">暫無錯誤記錄</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1469,28 +1601,24 @@
         let updateLogs = [];
         const MAX_LOGS = 50;
         let currentPanel = 'search';
+        let statusCheckInterval = null;
+        let isProcessing = false;
         
         function isMobile() {
             return window.innerWidth <= 968;
         }
         
         function toggleMobilePanel() {
-            const overlay = isMobile() ? document.getElementById('mobilePanelOverlay') : document.getElementById('mobilePanelOverlayLocation');
-            const panel = isMobile() ? document.getElementById('mobilePanel') : document.getElementById('mobilePanelLocation');
+            const overlay = document.getElementById('mobilePanelOverlay');
+            const panel = document.getElementById('mobilePanel');
             
-            if (currentPanel !== 'search' && currentPanel !== 'location') return;
-            
-            // 統一使用同一個 Mobile Panel DOM，但根據當前頁面決定顯示內容
-            const actualOverlay = document.getElementById('mobilePanelOverlay');
-            const actualPanel = document.getElementById('mobilePanel');
-            
-            if (actualOverlay.classList.contains('active')) {
-                actualOverlay.classList.remove('active');
-                actualPanel.classList.remove('active');
+            if (overlay.classList.contains('active')) {
+                overlay.classList.remove('active');
+                panel.classList.remove('active');
                 document.body.style.overflow = '';
             } else {
-                actualOverlay.classList.add('active');
-                actualPanel.classList.add('active');
+                overlay.classList.add('active');
+                panel.classList.add('active');
                 document.body.style.overflow = 'hidden';
                 renderManualListMobile();
             }
@@ -1518,10 +1646,8 @@
         function renderManualListMobile() {
             const listDiv = document.getElementById('manualListMobile');
             const fabBadge = document.getElementById('fabBadge');
-            const fabBadgeLocation = document.getElementById('fabBadgeLocation');
             
             if (fabBadge) fabBadge.textContent = manualSelectData.length;
-            if (fabBadgeLocation) fabBadgeLocation.textContent = manualSelectData.length;
             
             if (manualSelectData.length === 0) {
                 listDiv.innerHTML = '<div class="empty-list">暫無項目<br>在下方輸入添加</div>';
@@ -1583,7 +1709,7 @@
                 this.value = this.value.replace(/[^\d]/g, '').slice(0, 14);
             });
             
-            // 查詢位置輸入框事件（新增）
+            // 查詢位置輸入框事件
             document.getElementById('locationInput')?.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') searchLocation();
             });
@@ -1595,6 +1721,11 @@
             document.getElementById('singleBookKey')?.addEventListener('input', function(e) {
                 this.value = this.value.replace(/[^\d]/g, '').slice(0, 14);
             });
+            
+            // 開始批量更新狀態監控（如果目前在批量更新頁面）
+            if (currentPanel === 'batch') {
+                startStatusMonitoring();
+            }
         });
         
         function updateMobileUI() {
@@ -1612,6 +1743,9 @@
         }
         
         function switchPanel(panelName) {
+            // 停止之前的狀態監控
+            stopStatusMonitoring();
+            
             if (panelName !== 'search' && panelName !== 'location') {
                 const overlay = document.getElementById('mobilePanelOverlay');
                 const panel = document.getElementById('mobilePanel');
@@ -1642,8 +1776,212 @@
                 setTimeout(() => document.getElementById('locationInput')?.focus(), 100);
             } else if (panelName === 'single') {
                 setTimeout(() => document.getElementById('singleBookKey')?.focus(), 100);
+            } else if (panelName === 'batch') {
+                // 進入批量更新頁面時啟動狀態監控
+                startStatusMonitoring();
             }
         }
+        
+        //================ 批量更新狀態監控（新增）=================
+        
+        function startStatusMonitoring() {
+            // 立即檢查一次
+            checkBatchStatus();
+            
+            // 每10秒檢查一次
+            statusCheckInterval = setInterval(() => {
+                checkBatchStatus();
+            }, 10000);
+        }
+        
+        function stopStatusMonitoring() {
+            if (statusCheckInterval) {
+                clearInterval(statusCheckInterval);
+                statusCheckInterval = null;
+            }
+        }
+        
+        async function checkBatchStatus(manual = false) {
+            try {
+                const data = await apiCall('checkBatchStatus');
+                
+                if (data.success) {
+                    updateStatusUI(data);
+                    
+                    // 如果有錯誤記錄，載入錯誤列表
+                    if (data.errorCount > 0) {
+                        loadErrorList();
+                    } else {
+                        hideErrorList();
+                    }
+                    
+                    // 手動刷新時顯示提示
+                    if (manual) {
+                        const now = new Date().toLocaleTimeString('zh-HK');
+                        document.getElementById('lastUpdateTime').textContent = '最後更新：' + now;
+                    }
+                }
+            } catch (e) {
+                console.error('檢查狀態失敗:', e);
+            }
+        }
+        
+        function updateStatusUI(data) {
+            const dot = document.getElementById('statusDot');
+            const text = document.getElementById('statusText');
+            const refreshIcon = document.getElementById('refreshIcon');
+            
+            if (data.status === 'processing') {
+                dot.className = 'status-dot processing';
+                text.className = 'batch-status-text processing';
+                text.textContent = `系統狀態：更新中 (${data.pendingCount} 筆待處理)`;
+                refreshIcon.style.animation = 'rotate 2s linear infinite';
+                isProcessing = true;
+            } else {
+                dot.className = 'status-dot idle';
+                text.className = 'batch-status-text idle';
+                text.textContent = '系統狀態：空閒中';
+                refreshIcon.style.animation = 'none';
+                isProcessing = false;
+            }
+        }
+        
+        async function loadErrorList() {
+            try {
+                const data = await apiCall('getErrorList');
+                
+                if (data.success && data.data.length > 0) {
+                    displayErrorList(data.data);
+                }
+            } catch (e) {
+                console.error('載入錯誤列表失敗:', e);
+            }
+        }
+        
+        function displayErrorList(errors) {
+            const container = document.getElementById('errorListContainer');
+            const content = document.getElementById('errorListContent');
+            const badge = document.getElementById('errorCountBadge');
+            
+            container.style.display = 'block';
+            badge.textContent = errors.length + ' 筆';
+            
+            let html = '';
+            errors.forEach((row, index) => {
+                const barcode = row[0] || '';
+                const location = row[1] || '';
+                const reason = row[2] || '';
+                
+                html += `
+                    <div class="error-item">
+                        <div>
+                            <div class="error-barcode">${escapeHtml(barcode)}</div>
+                            <div class="error-reason">${escapeHtml(reason)}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            content.innerHTML = html || '<div class="empty-list">暫無錯誤記錄</div>';
+        }
+        
+        function hideErrorList() {
+            const container = document.getElementById('errorListContainer');
+            container.style.display = 'none';
+        }
+        
+        //================ 異步批量更新（修改）=================
+        
+        async function submitBatchUpdateAsync() {
+            const rawData = document.getElementById('batchData').value.trim();
+            const defaultLoc = document.getElementById('batchDefaultLocation').value.trim();
+            const btn = document.getElementById('batchUpdateBtn');
+            
+            if (!rawData) {
+                showStatus('batch', '請輸入批量資料', 'error');
+                return;
+            }
+            
+            if (!defaultLoc) {
+                showStatus('batch', '❌ 位置不能為空值', 'error');
+                document.getElementById('batchDefaultLocation').focus();
+                return;
+            }
+            
+            const lines = rawData.split('\n').filter(l => l.trim());
+            
+            if (lines.length === 0) {
+                showStatus('batch', '沒有有效資料', 'error');
+                return;
+            }
+            
+            // 處理資料格式
+            const processedLines = lines.map(line => {
+                const trimmedLine = line.trim();
+                if (line.includes(',')) {
+                    const parts = line.split(',');
+                    const key = parts[0].trim().substring(0, 14);
+                    const loc = parts[1] ? parts[1].trim() : defaultLoc;
+                    return key + (loc ? ',' + loc : '');
+                } else if (line.includes('\t')) {
+                    const parts = line.split('\t');
+                    const key = parts[0].trim().substring(0, 14);
+                    const loc = parts[1] ? parts[1].trim() : defaultLoc;
+                    return key + (loc ? ',' + loc : '');
+                } else {
+                    return trimmedLine.substring(0, 14) + (defaultLoc ? ',' + defaultLoc : '');
+                }
+            });
+            
+            const processedData = processedLines.join('\n');
+            
+            // 立即更新UI，不等待結果
+            btn.disabled = true;
+            btn.textContent = '⏳ 已提交，處理中...';
+            showStatus('batch', `✅ 已提交 ${lines.length} 筆資料，系統正在背景處理...`, 'success');
+            
+            // 清空輸入框
+            document.getElementById('batchData').value = '';
+            
+            // 立即檢查狀態（開始輪詢）
+            checkBatchStatus(true);
+            startStatusMonitoring();
+            
+            // 發送請求，但設定較短的超時（5秒），不等待完整處理
+            try {
+                // 使用 Promise.race 實現超時
+                const timeoutPromise = new Promise((_, reject) => {
+                    setTimeout(() => reject(new Error('TIMEOUT')), 5000);
+                });
+                
+                const fetchPromise = apiCall('batchUpdateLocation', { 
+                    data: processedData,
+                    defaultLocation: '',
+                    async: 'true'
+                });
+                
+                // 競爭：要么5秒內完成，要么超時
+                await Promise.race([fetchPromise, timeoutPromise]);
+                
+            } catch (e) {
+                // 超時或錯誤都視為正常，因為是異步處理
+                console.log('異步提交完成或超時:', e.message);
+            }
+            
+            // 恢復按鈕
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.textContent = '確認批量更新（異步）';
+            }, 2000);
+        }
+        
+        // 保留原來的同步版本（備用）
+        async function submitBatchUpdate() {
+            // 已改為使用異步版本
+            await submitBatchUpdateAsync();
+        }
+        
+        //================ 其他原有功能 =================
         
         function updateDisplayLimit() {
             const val = parseInt(document.getElementById('displayLimit').value);
@@ -1732,77 +2070,6 @@
             }
         }
         
-        async function submitBatchUpdate() {
-            const rawData = document.getElementById('batchData').value.trim();
-            const defaultLoc = document.getElementById('batchDefaultLocation').value.trim();
-            const btn = document.getElementById('batchUpdateBtn');
-            
-            if (!rawData) {
-                showStatus('batch', '請輸入批量資料', 'error');
-                return;
-            }
-            
-            if (!defaultLoc) {
-                showStatus('batch', '❌ 位置不能為空值', 'error');
-                document.getElementById('batchDefaultLocation').focus();
-                return;
-            }
-            
-            const lines = rawData.split('\n').filter(l => l.trim());
-            
-            if (lines.length === 0) {
-                showStatus('batch', '沒有有效資料', 'error');
-                return;
-            }
-            
-            const processedLines = lines.map(line => {
-                const trimmedLine = line.trim();
-                if (line.includes(',')) {
-                    const parts = line.split(',');
-                    const key = parts[0].trim().substring(0, 14);
-                    const loc = parts[1] ? parts[1].trim() : defaultLoc;
-                    return key + (loc ? ',' + loc : '');
-                } else if (line.includes('\t')) {
-                    const parts = line.split('\t');
-                    const key = parts[0].trim().substring(0, 14);
-                    const loc = parts[1] ? parts[1].trim() : defaultLoc;
-                    return key + (loc ? ',' + loc : '');
-                } else {
-                    return trimmedLine.substring(0, 14) + (defaultLoc ? ',' + defaultLoc : '');
-                }
-            });
-            
-            const processedData = processedLines.join('\n');
-            
-            btn.disabled = true;
-            btn.textContent = '⏳ 處理中...';
-            showStatus('batch', `正在處理 ${lines.length} 筆資料，請稍候...`, 'info');
-            
-            try {
-                const result = await apiCallWithTimeout('batchUpdateLocation', { 
-                    data: processedData,
-                    defaultLocation: ''
-                }, 60000);
-                
-                if (result.success) {
-                    const msg = `✅ 批量更新完成！成功：${result.summary.success} 筆，失敗：${result.summary.failed} 筆`;
-                    showStatus('batch', msg, result.summary.failed > 0 ? 'info' : 'success');
-                    document.getElementById('batchData').value = '';
-                } else {
-                    showStatus('batch', '❌ ' + result.error, 'error');
-                }
-            } catch (e) {
-                if (e.message === '請求超時') {
-                    showStatus('batch', '❌ 處理超時：資料筆數過多，請減少至50筆以下分批處理', 'error');
-                } else {
-                    showStatus('batch', '批量更新失敗：' + e.message, 'error');
-                }
-            } finally {
-                btn.disabled = false;
-                btn.textContent = '確認批量更新';
-            }
-        }
-        
         function clearBatchData() {
             document.getElementById('batchData').value = '';
             document.getElementById('batchDefaultLocation').value = '';
@@ -1817,6 +2084,8 @@
             if (panel === 'location') statusId = 'locationStatusBar';
             
             const bar = document.getElementById(statusId);
+            if (!bar) return;
+            
             bar.className = 'status-bar ' + type;
             bar.textContent = message;
             bar.style.display = 'block';
@@ -2069,7 +2338,6 @@
             }
         }
         
-        // 新增：查詢位置功能
         async function searchLocation() {
             const input = document.getElementById('locationInput').value.trim();
             const btn = document.getElementById('locationBtn');
@@ -2113,7 +2381,6 @@
             }
         }
         
-        // 新增：顯示位置查詢結果（找到）
         function displayLocationResults(data, barcode) {
             const resultsDiv = document.getElementById('locationResults');
             const location = data.location || '無位置資料';
@@ -2134,7 +2401,6 @@
             }
         }
         
-        // 新增：顯示位置查詢結果（未找到）
         function displayLocationNotFound(barcode) {
             const resultsDiv = document.getElementById('locationResults');
             
