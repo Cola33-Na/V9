@@ -123,7 +123,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
         
-        /* 圖書查詢專用布局 */
+        /* 圖書查詢/查詢位置專用布局 */
         .search-layout {
             display: grid;
             grid-template-columns: 1fr 320px;
@@ -509,6 +509,59 @@
             flex: 1;
             word-break: break-word;
             line-height: 1.4;
+        }
+        
+        /* 位置查詢結果特殊樣式 */
+        .location-result-box {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border: 2px solid #4caf50;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .location-result-box.found {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border-color: #4caf50;
+        }
+        
+        .location-result-box.not-found {
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            border-color: #f44336;
+        }
+        
+        .location-result-title {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .location-result-barcode {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 15px;
+            font-family: monospace;
+            letter-spacing: 1px;
+        }
+        
+        .location-result-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2e7d32;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            word-break: break-word;
+        }
+        
+        .location-result-box.not-found .location-result-value {
+            color: #c62828;
+            font-size: 18px;
+            background: transparent;
+            box-shadow: none;
         }
         
         /* 表格 */
@@ -1018,6 +1071,11 @@
                 font-size: 14px;
             }
             
+            /* 手機端位置查詢結果調整 */
+            .location-result-value {
+                font-size: 24px;
+            }
+            
             /* 手機端：調整結果區域順序，圖書館資訊在上 */
             #results {
                 display: flex;
@@ -1077,6 +1135,10 @@
             .log-list {
                 max-height: 400px;
             }
+            
+            .location-result-value {
+                font-size: 20px;
+            }
         }
         
         /* 防止橫向滾動 */
@@ -1106,6 +1168,10 @@
                 <button class="tool-btn active" data-target="search" onclick="switchPanel('search')" title="圖書查詢">
                     <span>🔍</span>
                     <span class="label">圖書查詢</span>
+                </button>
+                <button class="tool-btn" data-target="location" onclick="switchPanel('location')" title="查詢位置">
+                    <span>📍</span>
+                    <span class="label">查詢位置</span>
                 </button>
                 <button class="tool-btn" data-target="display" onclick="switchPanel('display')" title="顯示設定">
                     <span>⚙️</span>
@@ -1221,7 +1287,104 @@
                     </div>
                 </div>
                 
-                <!-- 2) 顯示設定功能區 -->
+                <!-- 2) 查詢位置功能區（新增） -->
+                <div id="panel-location" class="function-block">
+                    <div class="search-layout">
+                        <!-- 左側：查詢內容 -->
+                        <div class="search-main">
+                            <div class="block-title">📍 查詢位置</div>
+                            
+                            <div class="control-box">
+                                <div class="search-hint">
+                                    💡 請輸入14位數條碼查詢存放位置（例如：12345678912345）
+                                </div>
+                                
+                                <div class="search-box">
+                                    <input type="text" id="locationInput" placeholder="請輸入14位數條碼..." autocomplete="off" maxlength="14" inputmode="numeric">
+                                    <button class="btn-primary" onclick="searchLocation()" id="locationBtn" style="flex: 1;">
+                                        查詢位置
+                                    </button>
+                                </div>
+                                
+                                <div id="locationStatusBar" class="status-bar"></div>
+                                
+                                <div id="locationResults">
+                                    <div class="empty-state">
+                                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.3; margin-bottom: 16px;">
+                                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+                                            <circle cx="12" cy="9" r="2.5"/>
+                                        </svg>
+                                        <p>請輸入14位數條碼查詢位置</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 手機端浮動按鈕（與圖書查詢共用 Manual Select） -->
+                            <div class="fab-container mobile-only">
+                                <button class="fab-button" onclick="toggleMobilePanel()">
+                                    📋
+                                    <span class="fab-badge" id="fabBadgeLocation">0</span>
+                                </button>
+                            </div>
+                            
+                            <!-- 手機端彈出面板（與圖書查詢共用） -->
+                            <div class="mobile-panel-overlay" id="mobilePanelOverlayLocation" onclick="toggleMobilePanel()" style="display: none; visibility: hidden;"></div>
+                            <div class="mobile-panel" id="mobilePanelLocation" style="display: none; visibility: hidden;">
+                                <div class="mobile-panel-header">
+                                    <div class="mobile-panel-title">📋 Manual Select</div>
+                                    <button class="mobile-panel-close" onclick="toggleMobilePanel()">×</button>
+                                </div>
+                                <div class="mobile-panel-content">
+                                    <div class="manual-list-mobile" id="manualListMobileLocation">
+                                        <div class="empty-list">暫無項目</div>
+                                    </div>
+                                    
+                                    <div class="manual-input-group">
+                                        <input type="text" id="newManualItemMobileLocation" placeholder="加入新項目..." onkeypress="if(event.key==='Enter') addManualItemFromMobile()">
+                                        <button class="btn-success btn-sm" onclick="addManualItemFromMobile()">+</button>
+                                    </div>
+                                    
+                                    <div class="manual-actions">
+                                        <button class="btn-danger btn-sm" onclick="clearManualSelect()">清空全部</button>
+                                        <button class="btn-secondary btn-sm" onclick="removeLastManual()">移除最後一筆資料</button>
+                                    </div>
+                                    
+                                    <button class="btn-info btn-sm export-btn" onclick="exportManualSelect()" style="margin-top: 10px;">
+                                        📥 匯出清單 (CSV)
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 右側：Manual Select（桌面端） -->
+                        <div class="search-sidebar desktop-only">
+                            <h3>
+                                📋 Manual Select
+                                <span id="manualCountLocation" style="font-size: 12px; color: #666; font-weight: normal;">(0)</span>
+                            </h3>
+                            
+                            <div class="manual-list" id="manualListLocation">
+                                <div class="empty-list">載入中...</div>
+                            </div>
+                            
+                            <div class="manual-input-group">
+                                <input type="text" id="newManualItemLocation" placeholder="加入新項目..." onkeypress="if(event.key==='Enter') addManualItem()">
+                                <button class="btn-success btn-sm" onclick="addManualItem()">+</button>
+                            </div>
+                            
+                            <div class="manual-actions">
+                                <button class="btn-danger btn-sm" onclick="clearManualSelect()">清空全部</button>
+                                <button class="btn-secondary btn-sm" onclick="removeLastManual()">移除最後一筆資料</button>
+                            </div>
+                            
+                            <button class="btn-info btn-sm export-btn" onclick="exportManualSelect()">
+                                📥 匯出清單 (CSV)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 3) 顯示設定功能區 -->
                 <div id="panel-display" class="function-block">
                     <div class="panel-content">
                         <div class="block-title">⚙️ 顯示設定</div>
@@ -1240,7 +1403,7 @@
                     </div>
                 </div>
                 
-                <!-- 3) 單一位置更新功能區 -->
+                <!-- 4) 單一位置更新功能區 -->
                 <div id="panel-single" class="function-block">
                     <div class="panel-content">
                         <div class="block-title">📝 單一位置更新</div>
@@ -1271,7 +1434,7 @@
                     </div>
                 </div>
                 
-                <!-- 4) 批量位置更新功能區 -->
+                <!-- 5) 批量位置更新功能區 -->
                 <div id="panel-batch" class="function-block">
                     <div class="panel-content">
                         <div class="block-title">📋 批量位置更新</div>
@@ -1312,16 +1475,22 @@
         }
         
         function toggleMobilePanel() {
-            const overlay = document.getElementById('mobilePanelOverlay');
-            const panel = document.getElementById('mobilePanel');
+            const overlay = isMobile() ? document.getElementById('mobilePanelOverlay') : document.getElementById('mobilePanelOverlayLocation');
+            const panel = isMobile() ? document.getElementById('mobilePanel') : document.getElementById('mobilePanelLocation');
             
-            if (overlay.classList.contains('active')) {
-                overlay.classList.remove('active');
-                panel.classList.remove('active');
+            if (currentPanel !== 'search' && currentPanel !== 'location') return;
+            
+            // 統一使用同一個 Mobile Panel DOM，但根據當前頁面決定顯示內容
+            const actualOverlay = document.getElementById('mobilePanelOverlay');
+            const actualPanel = document.getElementById('mobilePanel');
+            
+            if (actualOverlay.classList.contains('active')) {
+                actualOverlay.classList.remove('active');
+                actualPanel.classList.remove('active');
                 document.body.style.overflow = '';
             } else {
-                overlay.classList.add('active');
-                panel.classList.add('active');
+                actualOverlay.classList.add('active');
+                actualPanel.classList.add('active');
                 document.body.style.overflow = 'hidden';
                 renderManualListMobile();
             }
@@ -1349,8 +1518,10 @@
         function renderManualListMobile() {
             const listDiv = document.getElementById('manualListMobile');
             const fabBadge = document.getElementById('fabBadge');
+            const fabBadgeLocation = document.getElementById('fabBadgeLocation');
             
             if (fabBadge) fabBadge.textContent = manualSelectData.length;
+            if (fabBadgeLocation) fabBadgeLocation.textContent = manualSelectData.length;
             
             if (manualSelectData.length === 0) {
                 listDiv.innerHTML = '<div class="empty-list">暫無項目<br>在下方輸入添加</div>';
@@ -1371,9 +1542,15 @@
         }
         
         function useManualItemFromMobile(value) {
-            document.getElementById('searchInput').value = value;
-            toggleMobilePanel();
-            searchBook();
+            if (currentPanel === 'search') {
+                document.getElementById('searchInput').value = value;
+                toggleMobilePanel();
+                searchBook();
+            } else if (currentPanel === 'location') {
+                document.getElementById('locationInput').value = value;
+                toggleMobilePanel();
+                searchLocation();
+            }
         }
         
         document.addEventListener('DOMContentLoaded', function() {
@@ -1397,11 +1574,21 @@
                 }
             });
             
+            // 圖書查詢輸入框事件
             document.getElementById('searchInput')?.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') searchBook();
             });
             
             document.getElementById('searchInput')?.addEventListener('input', function(e) {
+                this.value = this.value.replace(/[^\d]/g, '').slice(0, 14);
+            });
+            
+            // 查詢位置輸入框事件（新增）
+            document.getElementById('locationInput')?.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') searchLocation();
+            });
+            
+            document.getElementById('locationInput')?.addEventListener('input', function(e) {
                 this.value = this.value.replace(/[^\d]/g, '').slice(0, 14);
             });
             
@@ -1425,7 +1612,7 @@
         }
         
         function switchPanel(panelName) {
-            if (panelName !== 'search') {
+            if (panelName !== 'search' && panelName !== 'location') {
                 const overlay = document.getElementById('mobilePanelOverlay');
                 const panel = document.getElementById('mobilePanel');
                 if (overlay && panel) {
@@ -1451,8 +1638,9 @@
             
             if (panelName === 'search') {
                 setTimeout(() => document.getElementById('searchInput')?.focus(), 100);
+            } else if (panelName === 'location') {
+                setTimeout(() => document.getElementById('locationInput')?.focus(), 100);
             } else if (panelName === 'single') {
-                // 切換到單一位置更新頁面時，聚焦到14位數條碼欄位（第2個欄位）
                 setTimeout(() => document.getElementById('singleBookKey')?.focus(), 100);
             }
         }
@@ -1626,6 +1814,7 @@
             
             let statusId = 'statusBar';
             if (panel === 'batch') statusId = 'batchStatus';
+            if (panel === 'location') statusId = 'locationStatusBar';
             
             const bar = document.getElementById(statusId);
             bar.className = 'status-bar ' + type;
@@ -1706,15 +1895,22 @@
         
         function renderManualList() {
             const listDiv = document.getElementById('manualList');
+            const listDivLocation = document.getElementById('manualListLocation');
             const countSpan = document.getElementById('manualCount');
+            const countSpanLocation = document.getElementById('manualCountLocation');
             
-            if (!listDiv) return;
+            const html = generateManualListHTML();
+            
+            if (listDiv) listDiv.innerHTML = html;
+            if (listDivLocation) listDivLocation.innerHTML = html;
             
             if (countSpan) countSpan.textContent = `(${manualSelectData.length})`;
-            
+            if (countSpanLocation) countSpanLocation.textContent = `(${manualSelectData.length})`;
+        }
+        
+        function generateManualListHTML() {
             if (manualSelectData.length === 0) {
-                listDiv.innerHTML = '<div class="empty-list">暫無項目<br>在下方輸入添加</div>';
-                return;
+                return '<div class="empty-list">暫無項目<br>在下方輸入添加</div>';
             }
             
             let html = '';
@@ -1726,11 +1922,11 @@
                     </div>
                 `;
             });
-            listDiv.innerHTML = html;
+            return html;
         }
         
         async function addManualItem() {
-            const input = document.getElementById('newManualItem');
+            const input = document.getElementById(currentPanel === 'location' ? 'newManualItemLocation' : 'newManualItem');
             const value = input.value.trim();
             if (!value) return;
             
@@ -1766,7 +1962,6 @@
             if (manualSelectData.length === 0) return;
             const lastItem = manualSelectData[manualSelectData.length - 1];
             
-            // 直接移除，不顯示確認對話框
             manualSelectData.pop();
             renderManualList();
             renderManualListMobile();
@@ -1812,8 +2007,14 @@
         }
         
         function useManualItem(value) {
-            document.getElementById('searchInput').value = value;
-            searchBook();
+            if (currentPanel === 'search') {
+                document.getElementById('searchInput').value = value;
+                searchBook();
+            } else if (currentPanel === 'location') {
+                document.getElementById('locationInput').value = value;
+                searchLocation();
+            }
+            
             if (window.innerWidth <= 968) {
                 document.querySelector('.search-main').scrollIntoView({ behavior: 'smooth' });
             }
@@ -1868,6 +2069,90 @@
             }
         }
         
+        // 新增：查詢位置功能
+        async function searchLocation() {
+            const input = document.getElementById('locationInput').value.trim();
+            const btn = document.getElementById('locationBtn');
+            const resultsDiv = document.getElementById('locationResults');
+            
+            const barcodeRegex = /^\d{14}$/;
+            if (!barcodeRegex.test(input)) {
+                showStatus('location', '必須為14位數條碼', 'error');
+                document.getElementById('locationInput').focus();
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = '查詢中...';
+            resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>查詢位置中...</p></div>';
+            showStatus('location', '查詢進行中...', 'info');
+            
+            try {
+                const data = await apiCall('queryLocation', {
+                    barcode: input
+                });
+                
+                if (data.success && data.found) {
+                    displayLocationResults(data, input);
+                    showStatus('location', '✅ 查詢成功', 'success');
+                    addToManualSelectBackground(input);
+                    document.getElementById('locationInput').value = '';
+                } else if (data.success && !data.found) {
+                    displayLocationNotFound(input);
+                    showStatus('location', '找不到Barcode', 'error');
+                    document.getElementById('locationInput').value = '';
+                } else {
+                    throw new Error(data.error || '未知錯誤');
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="empty-state"><p>查詢失敗：${escapeHtml(error.message)}</p></div>`;
+                showStatus('location', '查詢失敗：' + error.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '查詢位置';
+            }
+        }
+        
+        // 新增：顯示位置查詢結果（找到）
+        function displayLocationResults(data, barcode) {
+            const resultsDiv = document.getElementById('locationResults');
+            const location = data.location || '無位置資料';
+            
+            resultsDiv.innerHTML = `
+                <div class="location-result-box found">
+                    <div class="location-result-title">條碼編號</div>
+                    <div class="location-result-barcode">${escapeHtml(barcode)}</div>
+                    <div class="location-result-title">存放位置</div>
+                    <div class="location-result-value">${escapeHtml(location)}</div>
+                </div>
+            `;
+            
+            if (window.innerWidth <= 968) {
+                setTimeout(() => {
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+            }
+        }
+        
+        // 新增：顯示位置查詢結果（未找到）
+        function displayLocationNotFound(barcode) {
+            const resultsDiv = document.getElementById('locationResults');
+            
+            resultsDiv.innerHTML = `
+                <div class="location-result-box not-found">
+                    <div class="location-result-title">條碼編號</div>
+                    <div class="location-result-barcode">${escapeHtml(barcode)}</div>
+                    <div class="location-result-value">找不到Barcode，請重新確認</div>
+                </div>
+            `;
+            
+            if (window.innerWidth <= 968) {
+                setTimeout(() => {
+                    resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+            }
+        }
+        
         async function addToManualSelectBackground(value) {
             if (!manualSelectData.includes(value)) {
                 manualSelectData.push(value);
@@ -1899,7 +2184,6 @@
                 { num: 9, key: 'series', label: '叢書名' }
             ];
             
-            // 生成書目資料 HTML
             let bookInfoHtml = `
                 <div class="book-info">
                     <h2>📖 書目資料</h2>
@@ -1921,7 +2205,6 @@
             
             bookInfoHtml += '</div></div>';
             
-            // 生成圖書館摘要 HTML（移到最前面）
             const displayHint = libs.total > libs.displayed ? ` (顯示前 ${libs.displayed} 筆)` : '';
             
             let librarySummaryHtml = `
@@ -1931,10 +2214,8 @@
                 </div>
             `;
             
-            // 調整順序：先顯示圖書館摘要，再顯示書目資料
             let html = librarySummaryHtml + bookInfoHtml;
             
-            // 圖書館列表
             if (libs && libs.list && libs.list.length > 0) {
                 html += `
                     <div class="libraries-section">
